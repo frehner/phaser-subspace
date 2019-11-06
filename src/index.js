@@ -23,6 +23,14 @@ const config = {
 const game = new Phaser.Game(config)
 let playerShip, cursors, rotationTime
 
+const SHIP_DETAILS = {
+  acceleration: 125,
+  frameStartIndex: 0,
+  frameEndIndex: 39,
+  maxSpeed: 200,
+  rotationDamper: 45,
+}
+
 function preload() {
   this.load.spritesheet("ships", shipsImg, {frameWidth: 36})
 }
@@ -32,30 +40,36 @@ function create() {
 
   playerShip = this.physics.add.sprite(window.innerWidth / 2, window.innerHeight / 2, "ships", 0)
   playerShip.setCollideWorldBounds(true)
-  playerShip.setBounce(.1)
+  playerShip.setBounce(0)
+  playerShip.setMaxVelocity(SHIP_DETAILS.maxSpeed)
   rotationTime = 0
 }
 
 function update(time, delta) {
-  let updateRotationTime = false
-
-  if(cursors.left.isDown) {
+  if(cursors.left.isDown || cursors.right.isDown) {
     if(time > rotationTime) {
-      const newFrame = playerShip.frame.name === 0 ? 39 : playerShip.frame.name - 1
+      let newFrame = playerShip.frame.name + (cursors.left.isDown ? -1 : 1)
+      if(newFrame < SHIP_DETAILS.frameStartIndex) {
+        newFrame = SHIP_DETAILS.frameEndIndex
+      } else if(newFrame > SHIP_DETAILS.frameEndIndex) {
+        newFrame = SHIP_DETAILS.frameStartIndex
+      }
       playerShip.setFrame(newFrame)
-      updateRotationTime = true
+      rotationTime = time + SHIP_DETAILS.rotationDamper
     }
-  } else if(cursors.right.isDown) {
-    if(time > rotationTime) {
-      const newFrame = playerShip.frame.name === 39 ? 0 : playerShip.frame.name + 1
-      playerShip.setFrame(newFrame)
-      updateRotationTime = true
-    }
-  } else {
-
   }
 
-  if(updateRotationTime) {
-    rotationTime = time + 35
+  if(cursors.up.isDown || cursors.down.isDown) {
+    // there are 40 different frames for each ship. 360deg / 40 = 9deg for a frame.
+    // now to figure out how to add acceleration based on that. frame.name % 39 === direction facing
+    const directionFacing = playerShip.frame.name % 39
+    const degreeFacing = directionFacing * 9
+    const radianFacing = Phaser.Math.DegToRad(degreeFacing)
+
+    const xAcceleration = Math.sin(radianFacing) * SHIP_DETAILS.acceleration * (cursors.down.isDown ? -1 : 1)
+    const yAcceleration = Math.cos(radianFacing) * SHIP_DETAILS.acceleration * (cursors.down.isDown ? 1 : -1)
+    playerShip.setAcceleration(xAcceleration, yAcceleration)
+  } else {
+    playerShip.setAcceleration(0, 0)
   }
 }
