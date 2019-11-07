@@ -100,7 +100,8 @@ function update(time, delta) {
       frequency: 110,
       maxParticles: 1,
       x: playerShip.x + (FRAME_WIDTH / 2 - 4) * Math.cos(radianBackwards),
-      y: playerShip.y + (FRAME_WIDTH / 2 - 4) * Math.sin(radianFacing),
+      // you have to make sin negative for y because in cirlces, a positive y is up and negative y is down, whereas the opposite is true for canvas
+      y: playerShip.y + (FRAME_WIDTH / 2 - 4) * -Math.sin(radianBackwards),
     });
 
   } else {
