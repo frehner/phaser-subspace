@@ -22,6 +22,7 @@ const config = {
 
 const game = new Phaser.Game(config)
 let playerShip, cursors, rotationTime
+const FRAME_WIDTH = 36
 
 const SHIP_DETAILS = {
   boostStats: {
@@ -40,7 +41,7 @@ const SHIP_DETAILS = {
 }
 
 function preload() {
-  this.load.spritesheet("ships", shipsImg, {frameWidth: 36})
+  this.load.spritesheet("ships", shipsImg, {frameWidth: FRAME_WIDTH})
 }
 
 function create() {
@@ -50,6 +51,7 @@ function create() {
   playerShip.setCollideWorldBounds(true)
   playerShip.setBounce(0)
   playerShip.setMaxVelocity(SHIP_DETAILS.defaultStats.maxSpeed)
+  playerShip.setDepth(100)
   rotationTime = 0
 }
 
@@ -69,19 +71,38 @@ function update(time, delta) {
 
   if(cursors.up.isDown || cursors.down.isDown) {
     // there are 40 different frames for each ship. 360deg / 40 = 9deg for a frame.
-    // now to figure out how to add acceleration based on that. frame.name % 39 === direction facing
-    const directionFacing = playerShip.frame.name % 39
-    const degreeFacing = directionFacing * 9
+    const directionFacing = playerShip.frame.name % 40
+    const degreeFacing = (-directionFacing + 90) * 9 % 360
     const radianFacing = Phaser.Math.DegToRad(degreeFacing)
+
+    const degreeBackwards = (degreeFacing + 180) % 360
+    const radianBackwards = Phaser.Math.DegToRad(degreeBackwards)
 
     const defaultOrBoost = cursors.shift.isDown ? "boostStats" : "defaultStats"
     const baseAcceleration = SHIP_DETAILS[defaultOrBoost].acceleration
     const baseMaxSpeed = SHIP_DETAILS[defaultOrBoost].maxSpeed
 
-    const xAcceleration = Math.sin(radianFacing) * baseAcceleration * (cursors.down.isDown ? -1 : 1)
-    const yAcceleration = Math.cos(radianFacing) * baseAcceleration * (cursors.down.isDown ? 1 : -1)
+    const xAcceleration = Math.cos(radianFacing) * baseAcceleration * (cursors.down.isDown ? -1 : 1)
+    const yAcceleration = Math.sin(radianFacing) * baseAcceleration * (cursors.down.isDown ? 1 : -1)
     playerShip.setAcceleration(xAcceleration, yAcceleration)
     playerShip.setMaxVelocity(baseMaxSpeed)
+
+    const particles = this.add.particles('fire');
+
+    particles.createEmitter({
+      alpha: { start: 1, end: 0 },
+      scale: { start: 0.2, end: 0.8 },
+      speed: 20,
+      angle: { min: -85, max: -95 },
+      rotate: { min: -180, max: 180 },
+      lifespan: { min: 50, max: 200 },
+      blendMode: 'ADD',
+      frequency: 110,
+      maxParticles: 1,
+      x: playerShip.x + (FRAME_WIDTH / 2 - 4) * Math.cos(radianBackwards),
+      y: playerShip.y + (FRAME_WIDTH / 2 - 4) * Math.sin(radianFacing),
+    });
+
   } else {
     playerShip.setAcceleration(0, 0)
   }
