@@ -22,7 +22,7 @@ const config = {
 
 const game = new Phaser.Game(config)
 let playerShip, cursors, rotationTime
-const FRAME_WIDTH = 36
+const SHIP_FRAME_WIDTH = 36
 
 const SHIP_DETAILS = {
   boostStats: {
@@ -41,7 +41,7 @@ const SHIP_DETAILS = {
 }
 
 function preload() {
-  this.load.spritesheet("ships", shipsImg, {frameWidth: FRAME_WIDTH})
+  this.load.spritesheet("ships", shipsImg, {frameWidth: SHIP_FRAME_WIDTH})
 }
 
 function create() {
@@ -99,9 +99,12 @@ function update(time, delta) {
       blendMode: 'ADD',
       frequency: 110,
       maxParticles: 1,
-      x: playerShip.x + (FRAME_WIDTH / 2 - 4) * Math.cos(radianBackwards),
-      // you have to make sin negative for y because in cirlces, a positive y is up and negative y is down, whereas the opposite is true for canvas
-      y: playerShip.y + (FRAME_WIDTH / 2 - 4) * -Math.sin(radianBackwards),
+      follow: playerShip,
+      followOffset: {
+        x: (SHIP_FRAME_WIDTH / 2 - 4) * Math.cos(radianBackwards),
+        // you have to make sin negative for y because in cirlces, a positive y is up and negative y is down, whereas the opposite is true for canvas
+        y: (SHIP_FRAME_WIDTH / 2 - 4) * -Math.sin(radianBackwards)
+      }
     });
 
   } else {
