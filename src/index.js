@@ -1,6 +1,7 @@
 import Phaser from "phaser/dist/phaser-arcade-physics.min.js"
 import "./index.css"
 import shipsImg from "../assets/ships.png"
+import bulletsImg from "../assets/bullets.png"
 
 const config = {
   type: Phaser.AUTO,
@@ -23,11 +24,19 @@ const config = {
 const game = new Phaser.Game(config)
 let playerShip, cursors, rotationTime
 const SHIP_FRAME_WIDTH = 36
+const BULLET_FRAME_WIDTH = 14
 
 const SHIP_DETAILS = {
   boostStats: {
     acceleration: 250,
     maxSpeed: 350,
+  },
+  weaponData: {
+    absoluteVelocity: 325,
+    // areaDamage: false,
+    bulletFrame: 0,
+    // damage: 100,
+    // timesBounces: 0,
   },
   defaultStats: {
     acceleration: 125,
@@ -42,6 +51,7 @@ const SHIP_DETAILS = {
 
 function preload() {
   this.load.spritesheet("ships", shipsImg, {frameWidth: SHIP_FRAME_WIDTH})
+  this.load.spritesheet("bullets", bulletsImg, {frameWidth: BULLET_FRAME_WIDTH})
 }
 
 function create() {
@@ -56,6 +66,14 @@ function create() {
 }
 
 function update(time, delta) {
+  // there are 40 different frames for each ship. 360deg / 40 = 9deg for a frame.
+  const directionFacing = playerShip.frame.name % 40
+  const degreeFacing = (-directionFacing + 90) * 9 % 360
+  const radianFacing = Phaser.Math.DegToRad(degreeFacing)
+
+  const degreeBackwards = (degreeFacing + 180) % 360
+  const radianBackwards = Phaser.Math.DegToRad(degreeBackwards)
+
   if(cursors.left.isDown || cursors.right.isDown) {
     if(time > rotationTime) {
       let newFrame = playerShip.frame.name + (cursors.left.isDown ? -1 : 1)
@@ -70,14 +88,6 @@ function update(time, delta) {
   }
 
   if(cursors.up.isDown || cursors.down.isDown) {
-    // there are 40 different frames for each ship. 360deg / 40 = 9deg for a frame.
-    const directionFacing = playerShip.frame.name % 40
-    const degreeFacing = (-directionFacing + 90) * 9 % 360
-    const radianFacing = Phaser.Math.DegToRad(degreeFacing)
-
-    const degreeBackwards = (degreeFacing + 180) % 360
-    const radianBackwards = Phaser.Math.DegToRad(degreeBackwards)
-
     const defaultOrBoost = cursors.shift.isDown ? "boostStats" : "defaultStats"
     const baseAcceleration = SHIP_DETAILS[defaultOrBoost].acceleration
     const baseMaxSpeed = SHIP_DETAILS[defaultOrBoost].maxSpeed
@@ -106,8 +116,21 @@ function update(time, delta) {
         y: (SHIP_FRAME_WIDTH / 2 - 4) * -Math.sin(radianBackwards)
       }
     });
-
   } else {
     playerShip.setAcceleration(0, 0)
+  }
+
+  if(cursors.space.isDown) {
+    const bullet = this.physics.add.sprite(
+      playerShip.x + SHIP_FRAME_WIDTH / 2 * Math.cos(radianFacing),
+      playerShip.y + SHIP_FRAME_WIDTH / 2 * -Math.sin(radianFacing),
+      "bullets",
+      SHIP_DETAILS.weaponData.bulletFrame
+    )
+    bullet.setVelocity(
+      Math.cos(radianFacing) * SHIP_DETAILS.weaponData.absoluteVelocity + playerShip.body.velocity.x,
+      // you have to make sin negative for y because in cirlces, a positive y is up and negative y is down, whereas the opposite is true for canvas
+      -Math.sin(radianFacing) * SHIP_DETAILS.weaponData.absoluteVelocity + playerShip.body.velocity.y,
+    )
   }
 }
