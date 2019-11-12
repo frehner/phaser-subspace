@@ -13,7 +13,10 @@ export default {
   plugins: [
     commonjs(),
     resolve(),
-    serve("dist"),
+    serve({
+      contentBase: "dist",
+      port: 9000,
+    }),
     postcss(),
     image({
       output: "dist"
