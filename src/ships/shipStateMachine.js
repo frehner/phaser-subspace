@@ -1,26 +1,4 @@
 import {Machine} from "xstate/dist/xstate.web"
-const SHIP_DETAILS = {
-  boostStats: {
-    acceleration: 250,
-    maxSpeed: 350,
-  },
-  weaponData: {
-    absoluteVelocity: 325,
-    // areaDamage: false,
-    bulletFrame: 0,
-    // damage: 100,
-    // timesBounces: 0,
-  },
-  defaultStats: {
-    acceleration: 125,
-    maxSpeed: 200,
-    rotationDamper: 45,
-  },
-  frameData: {
-    startIndex: 0,
-    endIndex: 39,
-  },
-}
 
 const rotationStates = {
   rotation: {
@@ -102,21 +80,11 @@ const weaponOptions = {
   }
 }
 
-export function createShipStateMachine(playerShip) {
-  // some initial config
-  playerShip.setCollideWorldBounds(true)
-  playerShip.setBounce(0)
-  playerShip.setMaxVelocity(SHIP_DETAILS.defaultStats.maxSpeed)
-  playerShip.setDepth(100)
-
+export function createShipStateMachine() {
   return Machine(
     {
       id: "ship",
       type: "parallel",
-      context: {
-        playerShip,
-        rotationTime: 0,
-      },
       states: {
         ...weaponStates,
         ...thrustStates,
