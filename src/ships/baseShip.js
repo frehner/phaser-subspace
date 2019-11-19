@@ -34,9 +34,7 @@ baseShip.prototype.getFacingData = function() {
   }
 }
 
-baseShip.prototype.updateLoop = function({cursors, time, updateContext}) {
-  const {radianFacing, radianBackwards} = this.getFacingData()
-
+baseShip.prototype.handleRotation = function({cursors, time}) {
   if(cursors.left.isDown || cursors.right.isDown) {
     this.shipState = this.shipStateMachine.transition(this.shipState, {type: "ROTATE", direction: cursors.left.isDown ? "left" : "right"})
     if(time > this.rotationTime) {
@@ -53,10 +51,17 @@ baseShip.prototype.updateLoop = function({cursors, time, updateContext}) {
     this.shipState = this.shipStateMachine.transition(this.shipState, {type: "NOROTATE"})
   }
 
+  if(this.shipState.changed) {
+    console.log("rotation changed")
+  }
+}
+
+baseShip.prototype.handleThrust = function({cursors, updateContext}) {
   if(cursors.up.isDown || cursors.down.isDown) {
     const type = `${cursors.shift.isDown ? "BOOST" : "NORMAL"}THRUST`
     this.shipState = this.shipStateMachine.transition(this.shipState, {type, direction: cursors.up.isDown ? "forward" : "backward"})
 
+    const {radianFacing, radianBackwards} = this.getFacingData()
     const defaultOrBoost = cursors.shift.isDown ? "boostThrust" : "thrust"
     const baseAcceleration = this.DETAILS[defaultOrBoost].acceleration
     const baseMaxSpeed = this.DETAILS[defaultOrBoost].maxSpeed
@@ -90,6 +95,14 @@ baseShip.prototype.updateLoop = function({cursors, time, updateContext}) {
     this.ship.setAcceleration(0, 0)
   }
 
+  if(this.shipState.changed) {
+    console.log("thrust changed")
+  }
+}
+
+baseShip.prototype.handleWeapons = function({cursors, updateContext}) {
+  const {radianFacing} = this.getFacingData()
+
   if(cursors.space.isDown) {
     this.shipState = this.shipStateMachine.transition(this.shipState, {type: "PRIMARYWEAPON"})
     const bullet = updateContext.physics.add.sprite(
@@ -103,9 +116,18 @@ baseShip.prototype.updateLoop = function({cursors, time, updateContext}) {
       // you have to make sin negative for y because in cirlces, a positive y is up and negative y is down, whereas the opposite is true for canvas
       -Math.sin(radianFacing) * this.DETAILS.weapon.absoluteVelocity + this.ship.body.velocity.y,
     )
-  } else {
-    // this.shipState = this.shipStateMachine.transition(this.shipState, {type: ""})
   }
+
+  // since there's no else statement here that calls "transition" then we have to check that it COULD have been called, and if it was, did it change
+  if(this.shipState.changed && cursors.space.isDown) {
+    console.log("weapons changed")
+  }
+}
+
+baseShip.prototype.updateLoop = function({cursors, time, updateContext}) {
+  this.handleRotation({cursors, time})
+  this.handleThrust({cursors, updateContext})
+  this.handleWeapons({cursors, updateContext})
 }
 
 const ALL_SHIPS_CONFIG = {
