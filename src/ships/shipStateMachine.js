@@ -2,19 +2,17 @@ import {Machine} from "xstate/dist/xstate.web"
 
 const rotationStates = {
   rotation: {
-    initial: "noRotation",
+    id: "rotation",
+    initial: "none",
     states: {
-      noRotation: {
+      none: {
         on: {
-          ROTATE: {
-            target:"rotate",
-            actions: () => console.log('rotating'),
-          }
+          ROTATE: "rotate",
         }
       },
       rotate: {
         on: {
-          NOROTATION: "noRotation",
+          NOROTATE: "none",
         }
       },
     }
@@ -23,27 +21,24 @@ const rotationStates = {
 
 const thrustStates = {
   thrust: {
-    initial: "noThrust",
+    initial: "none",
     states: {
-      noThrust: {
+      none: {
         on: {
-          NORMALTHRUST: {
-            target: "normalThrust",
-            actions: () => console.log('thrusting')
-          },
-          BOOSTTHRUST: "boostThrust",
+          NORMALTHRUST: "normal",
+          BOOSTTHRUST: "boost",
         },
       },
-      normalThrust: {
+      normal: {
         on: {
-          NOTHRUST: "noThrust",
-          BOOSTTHRUST: "boostThrust",
+          NOTHRUST: "none",
+          BOOSTTHRUST: "boost",
         }
       },
-      boostThrust: {
+      boost: {
         on: {
-          NOTHRUST: "noThrust",
-          NORMALTHRUST: "normalThrust"
+          NOTHRUST: "none",
+          NORMALTHRUST: "normal"
         }
       }
     }
@@ -52,22 +47,22 @@ const thrustStates = {
 
 const weaponStates = {
   weapons: {
-    initial: "weaponsPending",
+    initial: "pending",
     states: {
-      weaponsPending: {
+      pending: {
         on: {
-          FIRE_PRIMARY: "firePrimary",
-          FIRE_SECONDARY: "fireSecondary",
+          PRIMARYWEAPON: "primary",
+          SECONDARYWEAPON: "secondary",
         }
       },
-      firePrimary: {
+      primary: {
         on: {
-          "": "weaponsPending"
+          "": "pending"
         }
       },
-      fireSecondary: {
+      secondary: {
         on: {
-          "": "weaponsPending"
+          "": "pending"
         }
       },
     },
@@ -80,22 +75,23 @@ const weaponOptions = {
   }
 }
 
-export function createShipStateMachine() {
-  return Machine(
-    {
-      id: "ship",
-      type: "parallel",
-      states: {
-        ...weaponStates,
-        ...thrustStates,
-        ...rotationStates
-      }
-    },
-    {
-      guards: {
-        ...weaponOptions.guards,
-      }
+const shipStateMachine = Machine(
+  {
+    id: "ship",
+    type: "parallel",
+    states: {
+      ...weaponStates,
+      ...thrustStates,
+      ...rotationStates
     }
-  )
+  },
+  {
+    guards: {
+      ...weaponOptions.guards,
+    }
+  }
+)
 
+export function createShipStateMachine() {
+  return shipStateMachine
 }

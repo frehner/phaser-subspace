@@ -1,4 +1,3 @@
-import Phaser from "phaser/dist/phaser-arcade-physics.min.js"
 import {baseShip, SHIP_FRAME_WIDTH, BULLET_FRAME_WIDTH} from "./ships/baseShip"
 import "./index.css"
 import shipsImg from "../assets/ships.png"

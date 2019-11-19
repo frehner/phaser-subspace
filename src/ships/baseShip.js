@@ -1,4 +1,3 @@
-import Phaser from "phaser/dist/phaser-arcade-physics.min.js"
 import {createShipStateMachine} from './shipStateMachine'
 
 export const SHIP_FRAME_WIDTH = 36
@@ -36,8 +35,6 @@ baseShip.prototype.getFacingData = function() {
 }
 
 baseShip.prototype.updateLoop = function({cursors, time, updateContext}) {
-  const actions = []
-
   const {radianFacing, radianBackwards} = this.getFacingData()
 
   if(cursors.left.isDown || cursors.right.isDown) {
@@ -53,13 +50,11 @@ baseShip.prototype.updateLoop = function({cursors, time, updateContext}) {
       this.rotationTime = time + this.DETAILS.thrust.rotationDamper
     }
   } else {
-    this.shipState = this.shipStateMachine.transition(this.shipState, {type: "NOROTATION"})
+    this.shipState = this.shipStateMachine.transition(this.shipState, {type: "NOROTATE"})
   }
 
-  actions.push(...this.shipState.actions)
-
   if(cursors.up.isDown || cursors.down.isDown) {
-    const type = cursors.shift.isDown ? "BOOSTTHRUST" : "NORMALTHRUST"
+    const type = `${cursors.shift.isDown ? "BOOST" : "NORMAL"}THRUST`
     this.shipState = this.shipStateMachine.transition(this.shipState, {type, direction: cursors.up.isDown ? "forward" : "backward"})
 
     const defaultOrBoost = cursors.shift.isDown ? "boostThrust" : "thrust"
@@ -95,10 +90,8 @@ baseShip.prototype.updateLoop = function({cursors, time, updateContext}) {
     this.ship.setAcceleration(0, 0)
   }
 
-  actions.push(...this.shipState.actions)
-
   if(cursors.space.isDown) {
-    this.shipState = this.shipStateMachine.transition(this.shipState, {type: "weapons.FIRE_PRIMARY"})
+    this.shipState = this.shipStateMachine.transition(this.shipState, {type: "PRIMARYWEAPON"})
     const bullet = updateContext.physics.add.sprite(
       this.ship.x + SHIP_FRAME_WIDTH / 2 * Math.cos(radianFacing),
       this.ship.y + SHIP_FRAME_WIDTH / 2 * -Math.sin(radianFacing),
@@ -111,13 +104,7 @@ baseShip.prototype.updateLoop = function({cursors, time, updateContext}) {
       -Math.sin(radianFacing) * this.DETAILS.weapon.absoluteVelocity + this.ship.body.velocity.y,
     )
   } else {
-    this.shipState = this.shipStateMachine.transition(this.shipState, {type: "weapons.WEAPONS_PENDING"})
-  }
-
-  actions.push(...this.shipState.actions)
-
-  if(actions.length) {
-    console.log(actions)
+    // this.shipState = this.shipStateMachine.transition(this.shipState, {type: ""})
   }
 }
 
