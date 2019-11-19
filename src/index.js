@@ -72,7 +72,7 @@ function update(time, delta) {
   // const degreeBackwards = (degreeFacing + 180) % 360
   // const radianBackwards = Phaser.Math.DegToRad(degreeBackwards)
 
-  let actions = []
+  const actions = []
 
   if(cursors.left.isDown || cursors.right.isDown) {
     shipState = shipMachine.transition(shipState, {type: "ROTATE", direction: cursors.left.isDown ? "left" : "right"})
@@ -90,7 +90,7 @@ function update(time, delta) {
     shipState = shipMachine.transition(shipState, {type: "NOROTATION"})
   }
 
-  actions = [...actions, ...shipState.actions]
+  actions.push(...shipState.actions)
 
   if(cursors.up.isDown || cursors.down.isDown) {
     const type = cursors.shift.isDown ? "BOOSTTHRUST" : "NORMALTHRUST"
@@ -129,8 +129,7 @@ function update(time, delta) {
     // playerShip.setAcceleration(0, 0)
   }
 
-  actions = [...actions, ...shipState.actions]
-
+  actions.push(...shipState.actions)
 
   if(cursors.space.isDown) {
     shipState = shipMachine.transition(shipState, {type: "weapons.FIRE_PRIMARY"})
@@ -149,7 +148,7 @@ function update(time, delta) {
     shipState = shipMachine.transition(shipState, {type: "weapons.WEAPONS_PENDING"})
   }
 
-  actions = [...actions, ...shipState.actions]
+  actions.push(...shipState.actions)
 
   if(actions.length) {
     console.log(actions)
