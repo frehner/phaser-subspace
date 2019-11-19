@@ -1,17 +1,42 @@
-import {Machine} from "xstate"
+import {Machine} from "xstate/dist/xstate.web"
+const SHIP_DETAILS = {
+  boostStats: {
+    acceleration: 250,
+    maxSpeed: 350,
+  },
+  weaponData: {
+    absoluteVelocity: 325,
+    // areaDamage: false,
+    bulletFrame: 0,
+    // damage: 100,
+    // timesBounces: 0,
+  },
+  defaultStats: {
+    acceleration: 125,
+    maxSpeed: 200,
+    rotationDamper: 45,
+  },
+  frameData: {
+    startIndex: 0,
+    endIndex: 39,
+  },
+}
 
 const rotationStates = {
   rotation: {
-    initial: "none",
+    initial: "noRotation",
     states: {
-      none: {
+      noRotation: {
         on: {
-          ROTATE: "rotate",
+          ROTATE: {
+            target:"rotate",
+            actions: () => console.log('rotating'),
+          }
         }
       },
       rotate: {
         on: {
-          NONE: "none",
+          NOROTATION: "noRotation",
         }
       },
     }
@@ -20,24 +45,27 @@ const rotationStates = {
 
 const thrustStates = {
   thrust: {
-    initial: "none",
+    initial: "noThrust",
     states: {
-      none: {
+      noThrust: {
         on: {
-          NORMAL: "normal",
-          BOOST: "boost",
+          NORMALTHRUST: {
+            target: "normalThrust",
+            actions: () => console.log('thrusting')
+          },
+          BOOSTTHRUST: "boostThrust",
+        },
+      },
+      normalThrust: {
+        on: {
+          NOTHRUST: "noThrust",
+          BOOSTTHRUST: "boostThrust",
         }
       },
-      normal: {
+      boostThrust: {
         on: {
-          NONE: "none",
-          BOOST: "boost",
-        }
-      },
-      boost: {
-        on: {
-          NONE: "none",
-          NORMAL: "normal"
+          NOTHRUST: "noThrust",
+          NORMALTHRUST: "normalThrust"
         }
       }
     }
@@ -46,13 +74,9 @@ const thrustStates = {
 
 const weaponStates = {
   weapons: {
-    initial: "charged",
+    initial: "weaponsPending",
     states: {
-      '': [
-        {target: "charged", cond: "weaponFullyCharged"},
-        {target: "charging"},
-      ],
-      charged: {
+      weaponsPending: {
         on: {
           FIRE_PRIMARY: "firePrimary",
           FIRE_SECONDARY: "fireSecondary",
@@ -60,25 +84,14 @@ const weaponStates = {
       },
       firePrimary: {
         on: {
-          FIRE_PRIMARY: "firePrimary",
-          FIRE_SECONDARY: "fireSecondary",
-          CHARGING: "charging",
+          "": "weaponsPending"
         }
       },
       fireSecondary: {
         on: {
-          FIRE_PRIMARY: "firePrimary",
-          FIRE_SECONDARY: "fireSecondary",
-          CHARGING: "charging",
+          "": "weaponsPending"
         }
       },
-      charging: {
-        on: {
-          FIRE_PRIMARY: "firePrimary",
-          FIRE_SECONDARY: "fireSecondary",
-          CHARGED: "charged",
-        }
-      }
     },
   }
 }
@@ -89,19 +102,32 @@ const weaponOptions = {
   }
 }
 
-const shipMachine = Machine(
-  {
-    id: "ship",
-    type: "parallel",
-    states: {
-      ...weaponStates,
-      ...thrustStates,
-      ...rotationStates
+export function createShipStateMachine(playerShip) {
+  // some initial config
+  playerShip.setCollideWorldBounds(true)
+  playerShip.setBounce(0)
+  playerShip.setMaxVelocity(SHIP_DETAILS.defaultStats.maxSpeed)
+  playerShip.setDepth(100)
+
+  return Machine(
+    {
+      id: "ship",
+      type: "parallel",
+      context: {
+        playerShip,
+        rotationTime: 0,
+      },
+      states: {
+        ...weaponStates,
+        ...thrustStates,
+        ...rotationStates
+      }
+    },
+    {
+      guards: {
+        ...weaponOptions.guards,
+      }
     }
-  },
-  {
-    guards: {
-      ...weaponOptions.guards,
-    }
-  }
-)
+  )
+
+}
