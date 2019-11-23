@@ -34,7 +34,7 @@ baseShip.prototype.getFacingData = function() {
   }
 }
 
-baseShip.prototype.handleRotation = function({cursors, time}) {
+baseShip.prototype.handleRotationInput = function({cursors, time}) {
   if(cursors.left.isDown || cursors.right.isDown) {
     this.shipState = this.shipStateMachine.transition(this.shipState, {type: "ROTATE", direction: cursors.left.isDown ? "left" : "right"})
     if(time > this.rotationTime) {
@@ -56,7 +56,7 @@ baseShip.prototype.handleRotation = function({cursors, time}) {
   }
 }
 
-baseShip.prototype.handleThrust = function({cursors, updateContext}) {
+baseShip.prototype.handleThrustInput = function({cursors, updateContext}) {
   if(cursors.up.isDown || cursors.down.isDown) {
     const type = `${cursors.shift.isDown ? "BOOST" : "NORMAL"}THRUST`
     this.shipState = this.shipStateMachine.transition(this.shipState, {type, direction: cursors.up.isDown ? "forward" : "backward"})
@@ -100,7 +100,7 @@ baseShip.prototype.handleThrust = function({cursors, updateContext}) {
   }
 }
 
-baseShip.prototype.handleWeapons = function({cursors, updateContext}) {
+baseShip.prototype.handleWeaponsInput = function({cursors, updateContext}) {
   const {radianFacing} = this.getFacingData()
 
   if(cursors.space.isDown) {
@@ -125,9 +125,10 @@ baseShip.prototype.handleWeapons = function({cursors, updateContext}) {
 }
 
 baseShip.prototype.updateLoop = function({cursors, time, updateContext}) {
-  this.handleRotation({cursors, time})
-  this.handleThrust({cursors, updateContext})
-  this.handleWeapons({cursors, updateContext})
+  this.actionsToPerform = []
+  this.handleRotationInput({cursors, time})
+  this.handleThrustInput({cursors, updateContext})
+  this.handleWeaponsInput({cursors, updateContext})
 }
 
 const ALL_SHIPS_CONFIG = {
