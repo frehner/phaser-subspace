@@ -34,101 +34,122 @@ baseShip.prototype.getFacingData = function() {
   }
 }
 
+baseShip.prototype.addActionsAndActivities = function() {
+  this.actionsToPerform.push(...this.shipState.actions)
+  for(let activityName in this.shipState.activities) {
+    if(this.shipState.activities[activityName]) {
+      this.actionsToPerform.push(activityName)
+    }
+  }
+}
+
 baseShip.prototype.handleRotationInput = function({cursors, time}) {
   if(cursors.left.isDown || cursors.right.isDown) {
     this.shipState = this.shipStateMachine.transition(this.shipState, {type: "ROTATE", direction: cursors.left.isDown ? "left" : "right"})
-    if(time > this.rotationTime) {
-      let newFrame = this.ship.frame.name + (cursors.left.isDown ? -1 : 1)
-      if(newFrame < this.DETAILS.frame.startIndex) {
-        newFrame = this.DETAILS.frame.endIndex
-      } else if(newFrame > this.DETAILS.frame.endIndex) {
-        newFrame = this.DETAILS.frame.startIndex
-      }
-      this.ship.setFrame(newFrame)
-      this.rotationTime = time + this.DETAILS.thrust.rotationDamper
-    }
   } else {
     this.shipState = this.shipStateMachine.transition(this.shipState, {type: "NOROTATE"})
   }
 
   if(this.shipState.changed) {
-    console.log("rotation changed")
+    this.addActionsAndActivities()
   }
 }
 
-baseShip.prototype.handleThrustInput = function({cursors, updateContext}) {
+baseShip.prototype.rotateRotate = function({time, cursors}) {
+  if(time > this.rotationTime) {
+    let newFrame = this.ship.frame.name + (cursors.left.isDown ? -1 : 1)
+    if(newFrame < this.DETAILS.frame.startIndex) {
+      newFrame = this.DETAILS.frame.endIndex
+    } else if(newFrame > this.DETAILS.frame.endIndex) {
+      newFrame = this.DETAILS.frame.startIndex
+    }
+    this.ship.setFrame(newFrame)
+    this.rotationTime = time + this.DETAILS.thrust.rotationDamper
+  }
+}
+
+baseShip.prototype.thrustNormal = function({cursors, updateContext}) {
+  const {radianFacing, radianBackwards} = this.getFacingData()
+  const defaultOrBoost = cursors.shift.isDown ? "boostThrust" : "thrust"
+  const baseAcceleration = this.DETAILS[defaultOrBoost].acceleration
+  const baseMaxSpeed = this.DETAILS[defaultOrBoost].maxSpeed
+
+  const xAcceleration = Math.cos(radianFacing) * baseAcceleration * (cursors.down.isDown ? -1 : 1)
+  const yAcceleration = Math.sin(radianFacing) * baseAcceleration * (cursors.down.isDown ? 1 : -1)
+  this.ship.setAcceleration(xAcceleration, yAcceleration)
+  this.ship.setMaxVelocity(baseMaxSpeed)
+
+  const particles = updateContext.add.particles('fire');
+
+  particles.createEmitter({
+    alpha: { start: 1, end: 0 },
+    scale: { start: 0.2, end: 0.8 },
+    speed: 20,
+    angle: { min: -85, max: -95 },
+    rotate: { min: -180, max: 180 },
+    lifespan: { min: 50, max: 200 },
+    blendMode: 'ADD',
+    frequency: 110,
+    maxParticles: 1,
+    follow: this.ship,
+    followOffset: {
+      x: (SHIP_FRAME_WIDTH / 2 - 4) * Math.cos(radianBackwards),
+      // you have to make sin negative for y because in cirlces, a positive y is up and negative y is down, whereas the opposite is true for canvas
+      y: (SHIP_FRAME_WIDTH / 2 - 4) * -Math.sin(radianBackwards)
+    }
+  });
+}
+
+baseShip.prototype.thrustNone = function() {
+  this.ship.setAcceleration(0, 0)
+}
+
+baseShip.prototype.handleThrustInput = function({cursors}) {
   if(cursors.up.isDown || cursors.down.isDown) {
     const type = `${cursors.shift.isDown ? "BOOST" : "NORMAL"}THRUST`
     this.shipState = this.shipStateMachine.transition(this.shipState, {type, direction: cursors.up.isDown ? "forward" : "backward"})
-
-    const {radianFacing, radianBackwards} = this.getFacingData()
-    const defaultOrBoost = cursors.shift.isDown ? "boostThrust" : "thrust"
-    const baseAcceleration = this.DETAILS[defaultOrBoost].acceleration
-    const baseMaxSpeed = this.DETAILS[defaultOrBoost].maxSpeed
-
-    const xAcceleration = Math.cos(radianFacing) * baseAcceleration * (cursors.down.isDown ? -1 : 1)
-    const yAcceleration = Math.sin(radianFacing) * baseAcceleration * (cursors.down.isDown ? 1 : -1)
-    this.ship.setAcceleration(xAcceleration, yAcceleration)
-    this.ship.setMaxVelocity(baseMaxSpeed)
-
-    const particles = updateContext.add.particles('fire');
-
-    particles.createEmitter({
-      alpha: { start: 1, end: 0 },
-      scale: { start: 0.2, end: 0.8 },
-      speed: 20,
-      angle: { min: -85, max: -95 },
-      rotate: { min: -180, max: 180 },
-      lifespan: { min: 50, max: 200 },
-      blendMode: 'ADD',
-      frequency: 110,
-      maxParticles: 1,
-      follow: this.ship,
-      followOffset: {
-        x: (SHIP_FRAME_WIDTH / 2 - 4) * Math.cos(radianBackwards),
-        // you have to make sin negative for y because in cirlces, a positive y is up and negative y is down, whereas the opposite is true for canvas
-        y: (SHIP_FRAME_WIDTH / 2 - 4) * -Math.sin(radianBackwards)
-      }
-    });
   } else {
     this.shipState = this.shipStateMachine.transition(this.shipState, {type: "NOTHRUST"})
-    this.ship.setAcceleration(0, 0)
   }
-
-  if(this.shipState.changed) {
-    console.log("thrust changed")
-  }
+  this.addActionsAndActivities()
 }
 
-baseShip.prototype.handleWeaponsInput = function({cursors, updateContext}) {
-  const {radianFacing} = this.getFacingData()
-
+baseShip.prototype.handleWeaponsInput = function({cursors}) {
   if(cursors.space.isDown) {
     this.shipState = this.shipStateMachine.transition(this.shipState, {type: "PRIMARYWEAPON"})
-    const bullet = updateContext.physics.add.sprite(
-      this.ship.x + SHIP_FRAME_WIDTH / 2 * Math.cos(radianFacing),
-      this.ship.y + SHIP_FRAME_WIDTH / 2 * -Math.sin(radianFacing),
-      "bullets",
-      this.DETAILS.weapon.bulletFrame
-    )
-    bullet.setVelocity(
-      Math.cos(radianFacing) * this.DETAILS.weapon.absoluteVelocity + this.ship.body.velocity.x,
-      // you have to make sin negative for y because in cirlces, a positive y is up and negative y is down, whereas the opposite is true for canvas
-      -Math.sin(radianFacing) * this.DETAILS.weapon.absoluteVelocity + this.ship.body.velocity.y,
-    )
   }
-
   // since there's no else statement here that calls "transition" then we have to check that it COULD have been called, and if it was, did it change
   if(this.shipState.changed && cursors.space.isDown) {
-    console.log("weapons changed")
+    this.addActionsAndActivities()
   }
 }
 
-baseShip.prototype.updateLoop = function({cursors, time, updateContext}) {
+baseShip.prototype.weaponPrimaryFired = function({updateContext}) {
+  const {radianFacing} = this.getFacingData()
+  const bullet = updateContext.physics.add.sprite(
+    this.ship.x + SHIP_FRAME_WIDTH / 2 * Math.cos(radianFacing),
+    this.ship.y + SHIP_FRAME_WIDTH / 2 * -Math.sin(radianFacing),
+    "bullets",
+    this.DETAILS.weapon.bulletFrame
+  )
+  bullet.setVelocity(
+    Math.cos(radianFacing) * this.DETAILS.weapon.absoluteVelocity + this.ship.body.velocity.x,
+    // you have to make sin negative for y because in cirlces, a positive y is up and negative y is down, whereas the opposite is true for canvas
+    -Math.sin(radianFacing) * this.DETAILS.weapon.absoluteVelocity + this.ship.body.velocity.y,
+  )
+}
+
+baseShip.prototype.updateLoop = function(params = {}) {
   this.actionsToPerform = []
-  this.handleRotationInput({cursors, time})
-  this.handleThrustInput({cursors, updateContext})
-  this.handleWeaponsInput({cursors, updateContext})
+  this.handleRotationInput.apply(this, arguments)
+  this.handleThrustInput.apply(this, arguments)
+  this.handleWeaponsInput.apply(this, arguments)
+
+  if(this.actionsToPerform.length) {
+    this.actionsToPerform.forEach(actionName => {
+      this[actionName] && this[actionName].apply(this, arguments)
+    })
+  }
 }
 
 const ALL_SHIPS_CONFIG = {

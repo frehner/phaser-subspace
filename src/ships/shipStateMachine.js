@@ -8,12 +8,13 @@ const rotationStates = {
       none: {
         on: {
           ROTATE: "rotate",
-        }
+        },
       },
       rotate: {
         on: {
           NOROTATE: "none",
-        }
+        },
+        activities: ["rotateRotate"]
       },
     }
   },
@@ -28,18 +29,21 @@ const thrustStates = {
           NORMALTHRUST: "normal",
           BOOSTTHRUST: "boost",
         },
+        entry: ["thrustNone"],
       },
       normal: {
         on: {
           NOTHRUST: "none",
           BOOSTTHRUST: "boost",
-        }
+        },
+        activities: ["thrustNormal"],
       },
       boost: {
         on: {
           NOTHRUST: "none",
           NORMALTHRUST: "normal"
-        }
+        },
+        activities: ["thrustNormal"],
       }
     }
   },
@@ -51,18 +55,28 @@ const weaponStates = {
     states: {
       pending: {
         on: {
-          PRIMARYWEAPON: "primary",
-          SECONDARYWEAPON: "secondary",
+          PRIMARYWEAPON: {
+            target: "primary",
+            actions: ["weaponPrimaryFired"]
+          },
+          SECONDARYWEAPON: {
+            target: "secondary",
+            actions: ["weaponSecondaryFired"]
+          },
         }
       },
       primary: {
         on: {
-          "": "pending"
+          "": {
+            target: "pending",
+          }
         }
       },
       secondary: {
         on: {
-          "": "pending"
+          "": {
+            target: "pending",
+          }
         }
       },
     },
