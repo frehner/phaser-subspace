@@ -1,3 +1,13 @@
 html, body {
   margin: 0;
 }
+
+.game-meta-information {
+  background-color: transparent;
+  bottom: 0;
+  color: white;
+  min-height: 1rem;
+  padding: 1rem;
+  position: absolute;
+  width: 100%;
+}

@@ -2,6 +2,7 @@ import {createShipStateMachine} from './shipStateMachine'
 
 export const SHIP_FRAME_WIDTH = 36
 export const BULLET_FRAME_WIDTH = 14
+const weaponChargeLevelMeter = document.getElementById("weaponChargeLevel")
 export function baseShip({shipIndex=0, createContext}) {
   this.DETAILS = ALL_SHIPS_CONFIG[shipIndex]
 
@@ -19,6 +20,8 @@ export function baseShip({shipIndex=0, createContext}) {
 
   this.shipStateMachine = createShipStateMachine(this)
   this.shipState = this.shipStateMachine.initialState
+
+  weaponChargeLevelMeter.low = this.DETAILS.weapon.cost
 }
 
 baseShip.prototype.getFacingData = function() {
@@ -148,6 +151,7 @@ baseShip.prototype.weaponsCharge = function({delta}) {
   // update the charge level independent of the framerate
   const newLevel = delta / this.DETAILS.weapon.chargeDamper
   this.weaponCharge.level = Math.min(100, this.weaponCharge.level + newLevel)
+  weaponChargeLevelMeter.value = Math.floor(this.weaponCharge.level)
 }
 
 baseShip.prototype.updateLoop = function(params = {}) {
