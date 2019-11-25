@@ -1,5 +1,9 @@
 import {Machine} from "xstate/dist/xstate.web"
 
+export {
+  createShipStateMachine
+}
+
 const rotationStates = {
   rotation: {
     id: "rotation",
@@ -57,13 +61,15 @@ const weaponStates = {
         on: {
           PRIMARYWEAPON: {
             target: "primary",
-            actions: ["weaponPrimaryFired"]
+            actions: ["weaponPrimaryFired"],
+            cond: "weaponHasChargeToFire",
           },
           SECONDARYWEAPON: {
             target: "secondary",
             actions: ["weaponSecondaryFired"]
           },
-        }
+        },
+        activities: ["weaponsCharge"]
       },
       primary: {
         on: {
@@ -85,27 +91,41 @@ const weaponStates = {
 
 const weaponOptions = {
   guards: {
-    weaponFullyCharged: (context, event) => false
+    weaponHasChargeToFire: context => context.ship.weaponCharge.level >= context.ship.DETAILS.weapon.cost
   }
 }
 
-const shipStateMachine = Machine(
-  {
-    id: "ship",
-    type: "parallel",
-    states: {
-      ...weaponStates,
-      ...thrustStates,
-      ...rotationStates
-    }
+const shipMockObjectForDataVizGraph = {
+  weaponCharge: {
+    level: 1
   },
-  {
-    guards: {
-      ...weaponOptions.guards,
+  DETAILS: {
+    weapon: {
+      cost: 1
     }
   }
-)
-
-export function createShipStateMachine() {
-  return shipStateMachine
 }
+
+function createShipStateMachine(ship = shipMockObjectForDataVizGraph) {
+  return Machine(
+    {
+      id: "ship",
+      type: "parallel",
+      context: {
+        ship,
+      },
+      states: {
+        ...weaponStates,
+        ...thrustStates,
+        ...rotationStates
+      }
+    },
+    {
+      guards: {
+        ...weaponOptions.guards,
+      }
+    }
+  )
+}
+
+// createShipStateMachine()

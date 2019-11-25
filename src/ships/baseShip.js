@@ -12,8 +12,12 @@ export function baseShip({shipIndex=0, createContext}) {
   this.ship.setDepth(100)
 
   this.rotationTime = 0
+  this.weaponCharge = {
+    level: 100,
+    time: 0,
+  }
 
-  this.shipStateMachine = createShipStateMachine(this.ship)
+  this.shipStateMachine = createShipStateMachine(this)
   this.shipState = this.shipStateMachine.initialState
 }
 
@@ -137,6 +141,13 @@ baseShip.prototype.weaponPrimaryFired = function({updateContext}) {
     // you have to make sin negative for y because in cirlces, a positive y is up and negative y is down, whereas the opposite is true for canvas
     -Math.sin(radianFacing) * this.DETAILS.weapon.absoluteVelocity + this.ship.body.velocity.y,
   )
+  this.weaponCharge.level = this.weaponCharge.level - this.DETAILS.weapon.cost
+}
+
+baseShip.prototype.weaponsCharge = function({delta}) {
+  // update the charge level independent of the framerate
+  const newLevel = delta / this.DETAILS.weapon.chargeDamper
+  this.weaponCharge.level = Math.min(100, this.weaponCharge.level + newLevel)
 }
 
 baseShip.prototype.updateLoop = function(params = {}) {
@@ -162,15 +173,18 @@ const ALL_SHIPS_CONFIG = {
     thrust: {
       acceleration: 125,
       maxSpeed: 200,
-      rotationDamper: 45,
+      rotationDamper: 45, //higher damper means longer turn time
     },
     boostThrust: {
       acceleration: 250,
       maxSpeed: 350,
     },
     weapon: {
-      absoluteVelocity: 325,
+      absoluteVelocity: 450,
       frame: 0,
+      cost: 80,
+      damage: 100,
+      chargeDamper: 16, //higher damper means longer charge time
     },
   }
 }
