@@ -91,7 +91,7 @@ const weaponStates = {
 
 const weaponOptions = {
   guards: {
-    weaponHasChargeToFire: context => context.ship.weaponCharge.level >= context.ship.DETAILS.weapon.cost
+    weaponHasChargeToFire: context => context.ship.weaponCharge.level >= context.ship.SHIP_SPECS.weapon.cost
   }
 }
 

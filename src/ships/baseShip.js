@@ -3,12 +3,11 @@ import {createShipStateMachine} from './shipStateMachine'
 export const SHIP_FRAME_WIDTH = 36
 export const BULLET_FRAME_WIDTH = 14
 export function baseShip({shipIndex=0, createContext}) {
-  this.DETAILS = ALL_SHIPS_CONFIG[shipIndex]
+  this.SHIP_SPECS = ALL_SHIPS_SPECS[shipIndex]
 
-  this.ship = createContext.physics.add.sprite(window.innerWidth / 2, window.innerHeight / 2, "ships", this.DETAILS.frame.startIndex)
+  this.ship = createContext.physics.add.sprite(window.innerWidth / 2, window.innerHeight / 2, "ships", this.SHIP_SPECS.frame.startIndex)
   this.ship.setCollideWorldBounds(true)
   this.ship.setBounce(0)
-  this.ship.setMaxVelocity(this.DETAILS.thrust.maxSpeed)
   this.ship.setDepth(100)
 
   this.rotationTime = 0
@@ -29,7 +28,7 @@ baseShip.prototype.createWeaponChargeLevelMeter = function() {
   this.weaponChargeLevelMeter = document.createElement("meter")
   this.weaponChargeLevelMeter.setAttribute("min", 0)
   this.weaponChargeLevelMeter.setAttribute("max", 100)
-  this.weaponChargeLevelMeter.setAttribute("low", this.DETAILS.weapon.cost)
+  this.weaponChargeLevelMeter.setAttribute("low", this.SHIP_SPECS.weapon.cost)
   this.weaponChargeLevelMeter.setAttribute("high", 99)
   this.weaponChargeLevelMeter.setAttribute("optimum", 100)
   weaponChargeContainer.appendChild(this.weaponChargeLevelMeter)
@@ -77,26 +76,37 @@ baseShip.prototype.handleRotationInput = function({cursors, time}) {
 baseShip.prototype.rotateRotate = function({time, cursors}) {
   if(time > this.rotationTime) {
     let newFrame = this.ship.frame.name + (cursors.left.isDown ? -1 : 1)
-    if(newFrame < this.DETAILS.frame.startIndex) {
-      newFrame = this.DETAILS.frame.endIndex
-    } else if(newFrame > this.DETAILS.frame.endIndex) {
-      newFrame = this.DETAILS.frame.startIndex
+    if(newFrame < this.SHIP_SPECS.frame.startIndex) {
+      newFrame = this.SHIP_SPECS.frame.endIndex
+    } else if(newFrame > this.SHIP_SPECS.frame.endIndex) {
+      newFrame = this.SHIP_SPECS.frame.startIndex
     }
     this.ship.setFrame(newFrame)
-    this.rotationTime = time + this.DETAILS.thrust.rotationDamper
+    this.rotationTime = time + this.SHIP_SPECS.thrust.rotationDamper
   }
 }
 
 baseShip.prototype.thrustNormal = function({cursors, updateContext}) {
   const {radianFacing, radianBackwards} = this.getFacingData()
   const defaultOrBoost = cursors.shift.isDown ? "boostThrust" : "thrust"
-  const baseAcceleration = this.DETAILS[defaultOrBoost].acceleration
-  const baseMaxSpeed = this.DETAILS[defaultOrBoost].maxSpeed
+  const baseAcceleration = this.SHIP_SPECS[defaultOrBoost].acceleration
+  const baseMaxSpeed = this.SHIP_SPECS[defaultOrBoost].maxSpeed
 
   const xAcceleration = Math.cos(radianFacing) * baseAcceleration * (cursors.down.isDown ? -1 : 1)
   const yAcceleration = Math.sin(radianFacing) * baseAcceleration * (cursors.down.isDown ? 1 : -1)
   this.ship.setAcceleration(xAcceleration, yAcceleration)
   this.ship.setMaxVelocity(baseMaxSpeed)
+
+  // https://www.html5gamedevs.com/topic/10401-is-there-a-way-to-set-maximum-speed-for-an-object/
+  const {x: velocityX, y: velocityY} = this.ship.body.velocity
+  const currentVelocitySquared = velocityX ** 2 + velocityY ** 2
+  if(currentVelocitySquared > this.SHIP_SPECS.thrust.maxSpeed ** 2) {
+    const angle = Math.atan2(velocityY, velocityX)
+    this.ship.setVelocity(
+      Math.cos(angle) * this.SHIP_SPECS.thrust.maxSpeed,
+      Math.sin(angle) * this.SHIP_SPECS.thrust.maxSpeed,
+    )
+  }
 
   const particles = updateContext.add.particles('fire');
 
@@ -149,19 +159,19 @@ baseShip.prototype.weaponPrimaryFired = function({updateContext}) {
     this.ship.x + SHIP_FRAME_WIDTH / 2 * Math.cos(radianFacing),
     this.ship.y + SHIP_FRAME_WIDTH / 2 * -Math.sin(radianFacing),
     "bullets",
-    this.DETAILS.weapon.bulletFrame
+    this.SHIP_SPECS.weapon.bulletFrame
   )
   bullet.setVelocity(
-    Math.cos(radianFacing) * this.DETAILS.weapon.absoluteVelocity + this.ship.body.velocity.x,
+    Math.cos(radianFacing) * this.SHIP_SPECS.weapon.absoluteVelocity + this.ship.body.velocity.x,
     // you have to make sin negative for y because in cirlces, a positive y is up and negative y is down, whereas the opposite is true for canvas
-    -Math.sin(radianFacing) * this.DETAILS.weapon.absoluteVelocity + this.ship.body.velocity.y,
+    -Math.sin(radianFacing) * this.SHIP_SPECS.weapon.absoluteVelocity + this.ship.body.velocity.y,
   )
-  this.weaponCharge.level = this.weaponCharge.level - this.DETAILS.weapon.cost
+  this.weaponCharge.level = this.weaponCharge.level - this.SHIP_SPECS.weapon.cost
 }
 
 baseShip.prototype.weaponsCharge = function({delta}) {
   // update the charge level independent of the framerate
-  const newLevel = delta / this.DETAILS.weapon.chargeDamper
+  const newLevel = delta / this.SHIP_SPECS.weapon.chargeDamper
   this.weaponCharge.level = Math.min(100, this.weaponCharge.level + newLevel)
   this.weaponChargeLevelMeter.value = Math.floor(this.weaponCharge.level)
 }
@@ -179,7 +189,7 @@ baseShip.prototype.updateLoop = function(params = {}) {
   }
 }
 
-const ALL_SHIPS_CONFIG = {
+const ALL_SHIPS_SPECS = {
   0: {
     frame: {
       width: 36,
