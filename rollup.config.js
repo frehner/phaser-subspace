@@ -10,7 +10,7 @@ const isProduction = process.env.NODE_ENV === "production"
 export default {
   input: "./src/index.js",
   output: {
-    file: `./dist/bundle${isProduction ? ".min": ""}.js`,
+    file: `./dist/bundle.min.js`,
     format: "iife",
   },
   plugins: [
