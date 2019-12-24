@@ -3,17 +3,20 @@ import commonjs from "rollup-plugin-commonjs"
 import resolve from "rollup-plugin-node-resolve"
 import postcss from "rollup-plugin-postcss"
 import image from "rollup-plugin-img"
+import {terser} from "rollup-plugin-terser"
+
+const isProduction = process.env.NODE_ENV === "production"
 
 export default {
   input: "./src/index.js",
   output: {
-    dir: "dist",
-    format: "umd",
+    file: `./dist/bundle${isProduction ? ".min": ""}.js`,
+    format: "iife",
   },
   plugins: [
     commonjs(),
     resolve(),
-    serve({
+    !isProduction && serve({
       contentBase: "dist",
       port: 9000,
     }),
@@ -21,5 +24,6 @@ export default {
     image({
       output: "dist"
     }),
+    isProduction && terser(),
   ]
 }
