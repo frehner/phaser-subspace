@@ -31,23 +31,30 @@ const thrustStates = {
       none: {
         on: {
           NORMALTHRUST: "normal",
-          BOOSTTHRUST: "boost",
+          BOOSTTHRUST: {
+            target: "boost",
+            cond: "thrustBoostHasCharge"
+          },
         },
         entry: ["thrustNone"],
+        activities: ["thrustCharge"],
       },
       normal: {
         on: {
           NOTHRUST: "none",
-          BOOSTTHRUST: "boost",
+          BOOSTTHRUST: {
+            target: "boost",
+            cond: "thrustBoostHasCharge"
+          },
         },
-        activities: ["thrustNormal"],
+        activities: ["thrustNormal", "thrustCharge"],
       },
       boost: {
         on: {
           NOTHRUST: "none",
           NORMALTHRUST: "normal"
         },
-        activities: ["thrustNormal"],
+        activities: ["thrustNormal", "thrustDrain"],
       }
     }
   },
@@ -95,13 +102,23 @@ const weaponOptions = {
   }
 }
 
+const thrustOptions = {
+  guards: {
+    thrustBoostHasCharge: context => context.ship.thrustBoostCharge >= context.ship.SHIP_SPECS.boostThrust.chargeDamper
+  }
+}
+
 const shipMockObjectForDataVizGraph = {
   weaponCharge: {
     level: 1
   },
-  DETAILS: {
+  thrustBoostCharge: 100,
+  SHIP_SPECS: {
     weapon: {
       cost: 1
+    },
+    boostThrust: {
+      chargeDamper: 16,
     }
   }
 }
@@ -123,6 +140,7 @@ function createShipStateMachine(ship = shipMockObjectForDataVizGraph) {
     {
       guards: {
         ...weaponOptions.guards,
+        ...thrustOptions.guards,
       }
     }
   )

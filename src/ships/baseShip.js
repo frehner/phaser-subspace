@@ -11,12 +11,14 @@ export function baseShip({shipIndex=0, createContext}) {
   this.ship.setDepth(100)
 
   this.rotationTime = 0
+  this.thrustBoostCharge = 100
   this.weaponCharge = {
     level: 100,
     time: 0,
   }
 
   this.createWeaponChargeLevelMeter()
+  this.createThrustBoostLevelMeter()
 
   this.shipStateMachine = createShipStateMachine(this)
   this.shipState = this.shipStateMachine.initialState
@@ -33,6 +35,19 @@ baseShip.prototype.createWeaponChargeLevelMeter = function() {
   this.weaponChargeLevelMeter.setAttribute("optimum", 100)
   weaponChargeContainer.appendChild(this.weaponChargeLevelMeter)
   document.querySelector(".game-meta-information").appendChild(weaponChargeContainer)
+}
+
+baseShip.prototype.createThrustBoostLevelMeter = function() {
+  const thrustBoostContainer = document.createElement("div")
+  thrustBoostContainer.innerText = "B: "
+  this.thrustBoostChargeLevelMeter = document.createElement("meter")
+  this.thrustBoostChargeLevelMeter.setAttribute("min", 0)
+  this.thrustBoostChargeLevelMeter.setAttribute("max", 100)
+  this.thrustBoostChargeLevelMeter.setAttribute("low", 33)
+  this.thrustBoostChargeLevelMeter.setAttribute("high", 66)
+  this.thrustBoostChargeLevelMeter.setAttribute("optimum", 100)
+  thrustBoostContainer.appendChild(this.thrustBoostChargeLevelMeter)
+  document.querySelector(".game-meta-information").appendChild(thrustBoostContainer)
 }
 
 baseShip.prototype.getFacingData = function() {
@@ -88,7 +103,7 @@ baseShip.prototype.rotateRotate = function({time, cursors}) {
 
 baseShip.prototype.thrustNormal = function({cursors, updateContext}) {
   const {radianFacing, radianBackwards} = this.getFacingData()
-  const defaultOrBoost = cursors.shift.isDown ? "boostThrust" : "thrust"
+  const defaultOrBoost = (cursors.shift.isDown && this.thrustBoostCharge >= this.SHIP_SPECS.boostThrust.chargeDamper) ? "boostThrust" : "thrust"
   const baseAcceleration = this.SHIP_SPECS[defaultOrBoost].acceleration
   const baseMaxSpeed = this.SHIP_SPECS[defaultOrBoost].maxSpeed
 
@@ -100,11 +115,11 @@ baseShip.prototype.thrustNormal = function({cursors, updateContext}) {
   // https://www.html5gamedevs.com/topic/10401-is-there-a-way-to-set-maximum-speed-for-an-object/
   const {x: velocityX, y: velocityY} = this.ship.body.velocity
   const currentVelocitySquared = velocityX ** 2 + velocityY ** 2
-  if(currentVelocitySquared > this.SHIP_SPECS.thrust.maxSpeed ** 2) {
+  if(currentVelocitySquared > this.SHIP_SPECS[defaultOrBoost].maxSpeed ** 2) {
     const angle = Math.atan2(velocityY, velocityX)
     this.ship.setVelocity(
-      Math.cos(angle) * this.SHIP_SPECS.thrust.maxSpeed,
-      Math.sin(angle) * this.SHIP_SPECS.thrust.maxSpeed,
+      Math.cos(angle) * this.SHIP_SPECS[defaultOrBoost].maxSpeed,
+      Math.sin(angle) * this.SHIP_SPECS[defaultOrBoost].maxSpeed,
     )
   }
 
@@ -127,6 +142,19 @@ baseShip.prototype.thrustNormal = function({cursors, updateContext}) {
       y: (SHIP_FRAME_WIDTH / 2 - 4) * -Math.sin(radianBackwards)
     }
   });
+}
+
+baseShip.prototype.thrustCharge = function({delta}) {
+  // update the charge level independent of the framerate
+  const newLevel = delta / this.SHIP_SPECS.boostThrust.chargeDamper
+  this.thrustBoostCharge = Math.min(100, this.thrustBoostCharge + newLevel)
+  this.thrustBoostChargeLevelMeter.value = Math.floor(this.thrustBoostCharge)
+}
+
+baseShip.prototype.thrustDrain = function({delta}) {
+  const newLevel = delta / this.SHIP_SPECS.boostThrust.chargeDamper
+  this.thrustBoostCharge = Math.max(0, this.thrustBoostCharge - newLevel)
+  this.thrustBoostChargeLevelMeter.value = Math.floor(this.thrustBoostCharge)
 }
 
 baseShip.prototype.thrustNone = function() {
@@ -204,6 +232,7 @@ const ALL_SHIPS_SPECS = {
     boostThrust: {
       acceleration: 250,
       maxSpeed: 350,
+      chargeDamper: 16, //higher damper means longer charge time
     },
     weapon: {
       absoluteVelocity: 450,

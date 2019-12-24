@@ -9,5 +9,5 @@ html, body {
   min-height: 1rem;
   padding: 1rem;
   position: absolute;
-  width: 100%;
+  font-family: monospace;
 }
