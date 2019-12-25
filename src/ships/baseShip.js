@@ -103,7 +103,7 @@ baseShip.prototype.rotateRotate = function({time, cursors}) {
 
 baseShip.prototype.thrustNormal = function({cursors, updateContext}) {
   const {radianFacing, radianBackwards} = this.getFacingData()
-  const defaultOrBoost = (cursors.shift.isDown && this.thrustBoostCharge >= this.SHIP_SPECS.boostThrust.chargeDamper) ? "boostThrust" : "thrust"
+  const defaultOrBoost = (cursors.shift.isDown && this.thrustBoostCharge > 0) ? "boostThrust" : "thrust"
   const baseAcceleration = this.SHIP_SPECS[defaultOrBoost].acceleration
   const baseMaxSpeed = this.SHIP_SPECS[defaultOrBoost].maxSpeed
 
