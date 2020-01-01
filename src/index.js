@@ -35,6 +35,7 @@ function preload() {
 
 function create() {
   // map and world config
+  // mostly following this guide https://medium.com/@michaelwesthadley/modular-game-worlds-in-phaser-3-tilemaps-1-958fc7e6bbd6
   const map = this.make.tilemap({key: "map"})
   const mapTileSet = map.addTilesetImage("mapsprites", "mapsprites")
   worldLayer = map.createStaticLayer("playerLayer", mapTileSet, 0, 0)
@@ -52,10 +53,12 @@ function create() {
   cursors = this.input.keyboard.createCursorKeys()
 
   // ship config
-  shipConfigObj = new baseShip({shipIndex: 0, createContext: this})
+  shipConfigObj = new baseShip({shipIndex: 0, createContext: this, worldLayer})
 
-  // ship collides with world
-  this.physics.add.collider(shipConfigObj.ship, worldLayer)
+  // camera follows this ship (put this here instead of the baseShip because the camera won't follow all ships created in the future)
+  const camera = this.cameras.main
+  camera.startFollow(shipConfigObj.ship)
+  camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels)
 }
 
 function update(time, delta) {

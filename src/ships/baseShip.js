@@ -2,7 +2,7 @@ import {createShipStateMachine} from './shipStateMachine'
 
 export const SHIP_FRAME_WIDTH = 36
 export const BULLET_FRAME_WIDTH = 14
-export function baseShip({shipIndex=0, createContext}) {
+export function baseShip({shipIndex=0, createContext, worldLayer}) {
   this.SHIP_SPECS = ALL_SHIPS_SPECS[shipIndex]
 
   this.ship = createContext.physics.add.sprite(window.innerWidth / 2, window.innerHeight / 2, "ships", this.SHIP_SPECS.frame.startIndex)
@@ -22,6 +22,9 @@ export function baseShip({shipIndex=0, createContext}) {
 
   this.shipStateMachine = createShipStateMachine(this)
   this.shipState = this.shipStateMachine.initialState
+
+  // ship collides with world
+  createContext.physics.add.collider(this.ship, worldLayer)
 }
 
 baseShip.prototype.createWeaponChargeLevelMeter = function() {
@@ -195,7 +198,10 @@ baseShip.prototype.weaponPrimaryFired = function({updateContext, worldLayer}) {
     -Math.sin(radianFacing) * this.SHIP_SPECS.weapon.absoluteVelocity + this.ship.body.velocity.y,
   )
   this.weaponCharge.level = this.weaponCharge.level - this.SHIP_SPECS.weapon.cost
+
+  // https://photonstorm.github.io/phaser3-docs/Phaser.Physics.Arcade.Factory.html#collider__anchor
   updateContext.physics.add.collider(bullet, worldLayer, (collidedBullet, collidedWorldLayer) => {
+    // https://photonstorm.github.io/phaser3-docs/Phaser.Physics.Arcade.Sprite.html#destroy__anchor
     collidedBullet.destroy()
   })
 }
