@@ -6,7 +6,7 @@ export function baseShip({shipIndex=0, createContext}) {
   this.SHIP_SPECS = ALL_SHIPS_SPECS[shipIndex]
 
   this.ship = createContext.physics.add.sprite(window.innerWidth / 2, window.innerHeight / 2, "ships", this.SHIP_SPECS.frame.startIndex)
-  this.ship.setCollideWorldBounds(true)
+  // this.ship.setCollideWorldBounds(true)
   this.ship.setBounce(0)
   this.ship.setDepth(100)
 
@@ -181,7 +181,7 @@ baseShip.prototype.handleWeaponsInput = function({cursors}) {
   }
 }
 
-baseShip.prototype.weaponPrimaryFired = function({updateContext}) {
+baseShip.prototype.weaponPrimaryFired = function({updateContext, worldLayer}) {
   const {radianFacing} = this.getFacingData()
   const bullet = updateContext.physics.add.sprite(
     this.ship.x + SHIP_FRAME_WIDTH / 2 * Math.cos(radianFacing),
@@ -195,6 +195,9 @@ baseShip.prototype.weaponPrimaryFired = function({updateContext}) {
     -Math.sin(radianFacing) * this.SHIP_SPECS.weapon.absoluteVelocity + this.ship.body.velocity.y,
   )
   this.weaponCharge.level = this.weaponCharge.level - this.SHIP_SPECS.weapon.cost
+  updateContext.physics.add.collider(bullet, worldLayer, (collidedBullet, collidedWorldLayer) => {
+    collidedBullet.destroy()
+  })
 }
 
 baseShip.prototype.weaponsCharge = function({delta}) {

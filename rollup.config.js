@@ -4,6 +4,7 @@ import resolve from "rollup-plugin-node-resolve"
 import postcss from "rollup-plugin-postcss"
 import image from "rollup-plugin-img"
 import {terser} from "rollup-plugin-terser"
+import json from "@rollup/plugin-json"
 
 const isProduction = process.env.NODE_ENV === "production"
 
@@ -21,6 +22,7 @@ export default {
       port: 9000,
     }),
     postcss(),
+    json(),
     image({
       output: "dist"
     }),
