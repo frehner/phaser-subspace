@@ -2,8 +2,8 @@ import {baseShip, SHIP_FRAME_WIDTH, BULLET_FRAME_WIDTH} from "./ships/baseShip"
 import "./index.css"
 import shipsImg from "../assets/ships.png"
 import bulletsImg from "../assets/bullets.png"
-import mapSprites from "../assets/mapsprites.png"
-import tilemap from "../assets/testmap.json"
+import mapSprites from "../assets/map/mapsprites.png"
+import tilemap from "../assets/map/testmap1.json"
 
 const config = {
   type: Phaser.AUTO,
@@ -38,7 +38,7 @@ function create() {
   // mostly following this guide https://medium.com/@michaelwesthadley/modular-game-worlds-in-phaser-3-tilemaps-1-958fc7e6bbd6
   const map = this.make.tilemap({key: "map"})
   const mapTileSet = map.addTilesetImage("mapsprites", "mapsprites")
-  worldLayer = map.createStaticLayer("playerLayer", mapTileSet, 0, 0)
+  worldLayer = map.createStaticLayer("worldLayer", mapTileSet, 0, 0)
   worldLayer.setCollisionByProperty({collides: true})
 
   // debug world collisions to ensure they're configured correctly
