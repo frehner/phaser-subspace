@@ -24,7 +24,8 @@ export default {
     postcss(),
     json(),
     image({
-      output: "dist"
+      output: "dist",
+      limit: .000001,
     }),
     isProduction && terser(),
   ]
