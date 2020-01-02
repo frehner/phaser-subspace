@@ -113,18 +113,7 @@ baseShip.prototype.thrustNormal = function({cursors, updateContext}) {
   const xAcceleration = Math.cos(radianFacing) * baseAcceleration * (cursors.down.isDown ? -1 : 1)
   const yAcceleration = Math.sin(radianFacing) * baseAcceleration * (cursors.down.isDown ? 1 : -1)
   this.ship.setAcceleration(xAcceleration, yAcceleration)
-  this.ship.setMaxVelocity(baseMaxSpeed)
-
-  // https://www.html5gamedevs.com/topic/10401-is-there-a-way-to-set-maximum-speed-for-an-object/
-  const {x: velocityX, y: velocityY} = this.ship.body.velocity
-  const currentVelocitySquared = velocityX ** 2 + velocityY ** 2
-  if(currentVelocitySquared > this.SHIP_SPECS[defaultOrBoost].maxSpeed ** 2) {
-    const angle = Math.atan2(velocityY, velocityX)
-    this.ship.setVelocity(
-      Math.cos(angle) * this.SHIP_SPECS[defaultOrBoost].maxSpeed,
-      Math.sin(angle) * this.SHIP_SPECS[defaultOrBoost].maxSpeed,
-    )
-  }
+  this.ship.body.setMaxSpeed(baseMaxSpeed)
 
   const particles = updateContext.add.particles('fire');
 
