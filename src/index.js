@@ -3,7 +3,7 @@ import "./index.css"
 import shipsImg from "../assets/ships.png"
 import bulletsImg from "../assets/bullets.png"
 import mapSprites from "../assets/map/mapsprites.png"
-import tilemap from "../assets/map/testmap1.json"
+import tilemap from "../assets/map/testmap.json"
 
 const config = {
   type: Phaser.AUTO,
