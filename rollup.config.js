@@ -9,7 +9,7 @@ import json from "@rollup/plugin-json"
 const isProduction = process.env.NODE_ENV === "production"
 
 export default {
-  input: "./src/index.js",
+  input: "./src/newindex.js",
   output: {
     file: `./dist/bundle.min.js`,
     format: "iife",
