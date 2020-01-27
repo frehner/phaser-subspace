@@ -215,7 +215,7 @@ baseShip.prototype.updateLoop = function(params = {}) {
   }
 }
 
-const ALL_SHIPS_SPECS = {
+export const ALL_SHIPS_SPECS = {
   0: {
     frame: {
       width: 36,

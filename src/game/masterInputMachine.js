@@ -1,10 +1,8 @@
 import {Machine, assign, spawn, interpret, forwardTo} from "xstate/dist/xstate.web"
-
 import {startMenuMachine} from "../startMenu/startMenuMachine.js"
-import {playGameMachine} from "../ships/newShipStateMachine"
-import { send } from "xstate"
+import {createPlayGameMachine} from "../ships/newShipStateMachine"
 
-export function createMasterInputService() {
+export function createMasterInputService({createContext} = {}) {
   const machine = Machine({
     id: 'masterInput',
     initial: 'startMenu',
@@ -16,7 +14,9 @@ export function createMasterInputService() {
       startMenu: {
         invoke: {
           src: startMenuMachine,
+          id: "startMenuMachineId",
           onDone: 'playGame',
+          autoForward: true,
         },
         on: {
           ESCAPE_KEY: "playGame",
@@ -24,7 +24,7 @@ export function createMasterInputService() {
       },
       playGame: {
         entry: assign({
-          playGameMachine: ctx => ctx.playGameMachine || spawn(playGameMachine, "playGameMachineId"),
+          playGameMachine: ctx => ctx.playGameMachine || spawn(createPlayGameMachine({createContext}), "playGameMachineId"),
         }),
         on: {
           ESCAPE_KEY: "startMenu",
