@@ -77,20 +77,23 @@ function update(time, delta) {
   }
 
   for(let key in cursors) {
-    if(cursors[key].isDown) masterInputService.send({
-      type: cursors[key].__additionalData__.eventName,
-      phaserUpdateContext: this,
-      worldLayer,
-      delta,
-      time,
-    })
+    if(cursors[key].isDown) {
+      masterInputService.send({
+        type: cursors[key].__additionalData__.eventName,
+        phaserUpdateContext: this,
+        worldLayer,
+        delta,
+        time,
+        ...cursors[key].__additionalData__
+      })
+    }
   }
 
   masterInputService.send({type: "GAMETICK", time, delta})
 }
 
 function mapKeyCodeToEventName(keyObj) {
-  let eventName
+  let eventName, rotationDirection
   switch (keyObj.keyCode) {
     // up and down
     case 38:
@@ -102,6 +105,7 @@ function mapKeyCodeToEventName(keyObj) {
     case 37:
     case 39:
       eventName = "ROTATE"
+      rotationDirection = keyObj.keyCode === 37 ? "LEFT" : "RIGHT"
       break;
 
     // space
@@ -123,4 +127,5 @@ function mapKeyCodeToEventName(keyObj) {
   }
 
   keyObj.__additionalData__.eventName = eventName
+  if(rotationDirection) keyObj.__additionalData__.rotationDirection = rotationDirection
 }

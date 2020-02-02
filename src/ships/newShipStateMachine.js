@@ -1,7 +1,7 @@
 import {Machine} from "xstate/dist/xstate.web"
 import {thrustStates, thrustOptions} from './thrustStateMachineHelper'
 import {weaponStates, weaponOptions} from "./weaponStateMachineHelper"
-import {rotationStates} from "./rotationStateMachineHelper"
+import {rotationStates, rotationOptions} from "./rotationStateMachineHelper"
 import {ALL_SHIPS_SPECS} from "./baseShip.js"
 
 export function createPlayGameMachine({shipIndex=0, createContext, worldLayer} = {}) {
@@ -30,7 +30,8 @@ export function createPlayGameMachine({shipIndex=0, createContext, worldLayer} =
     initial: "dead",
     context: {
       ship,
-      weaponChargeLevel: 100
+      weaponChargeLevel: 100,
+      nextRotationTime: 0,
     },
     states: {
       dead: {
@@ -78,6 +79,7 @@ export function createPlayGameMachine({shipIndex=0, createContext, worldLayer} =
         ctx.ship.setVisible(true).setActive(true)
       },
       ...weaponOptions.actions,
+      ...rotationOptions.actions,
     },
   })
 }
