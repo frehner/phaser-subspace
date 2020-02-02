@@ -77,8 +77,16 @@ function update(time, delta) {
   }
 
   for(let key in cursors) {
-    if(cursors[key].isDown) masterInputService.send(cursors[key].__additionalData__.eventName)
+    if(cursors[key].isDown) masterInputService.send({
+      type: cursors[key].__additionalData__.eventName,
+      phaserUpdateContext: this,
+      worldLayer,
+      delta,
+      time,
+    })
   }
+
+  masterInputService.send({type: "GAMETICK", time, delta})
 }
 
 function mapKeyCodeToEventName(keyObj) {

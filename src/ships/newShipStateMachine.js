@@ -7,12 +7,30 @@ import {ALL_SHIPS_SPECS} from "./baseShip.js"
 export function createPlayGameMachine({shipIndex=0, createContext, worldLayer} = {}) {
   const shipSpecs = ALL_SHIPS_SPECS[shipIndex]
   const ship = createContext.physics.add.sprite(window.innerWidth / 2, window.innerHeight / 2, "ships", shipSpecs.frame.startIndex)
+  ship.__customAdditions__ = {SHIP_SPECS: shipSpecs}
+  ship.__customAdditions__.getFacingData = function() {
+    // there are 40 different frames for each ship. 360deg / 40 = 9deg for a frame.
+    const directionFacing = ship.frame.name % 40
+    const degreeFacing = (-directionFacing + 90) * 9 % 360
+    const radianFacing = Phaser.Math.DegToRad(degreeFacing)
+
+    const degreeBackwards = (degreeFacing + 180) % 360
+    const radianBackwards = Phaser.Math.DegToRad(degreeBackwards)
+
+    return {
+      degreeFacing,
+      degreeBackwards,
+      radianFacing,
+      radianBackwards
+    }
+  }
 
   return Machine({
     id: "playGameMachine",
     initial: "dead",
     context: {
       ship,
+      weaponChargeLevel: 100
     },
     states: {
       dead: {
@@ -58,7 +76,8 @@ export function createPlayGameMachine({shipIndex=0, createContext, worldLayer} =
       },
       setShipToAlive: ctx => {
         ctx.ship.setVisible(true).setActive(true)
-      }
-    }
+      },
+      ...weaponOptions.actions,
+    },
   })
 }
