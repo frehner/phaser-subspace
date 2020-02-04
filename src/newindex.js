@@ -93,39 +93,39 @@ function update(time, delta) {
 }
 
 function mapKeyCodeToEventName(keyObj) {
-  let eventName, rotationDirection
+  const additionalDataObj = {}
   switch (keyObj.keyCode) {
     // up and down
     case 38:
     case 40:
-      eventName = "NORMALTHRUST"
+      additionalDataObj.eventName = "NORMALTHRUST"
       break;
 
     // left and right
     case 37:
     case 39:
-      eventName = "ROTATE"
-      rotationDirection = keyObj.keyCode === 37 ? "LEFT" : "RIGHT"
+      additionalDataObj.eventName = "ROTATE"
+      additionalDataObj.rotationDirection = keyObj.keyCode === 37 ? "LEFT" : "RIGHT"
       break;
 
     // space
     case 32:
-      eventName = "PRIMARYWEAPON"
+      additionalDataObj.eventName = "PRIMARYWEAPON"
       break;
 
     case 16:
-      eventName = "BOOSTTHRUST"
+      additionalDataObj.eventName = ""
       break;
 
     default:
       throw Error("Key input not currently mapped")
-      break;
   }
 
   if(!keyObj.__additionalData__) {
     keyObj.__additionalData__ = {}
   }
 
-  keyObj.__additionalData__.eventName = eventName
-  if(rotationDirection) keyObj.__additionalData__.rotationDirection = rotationDirection
+  keyObj.__additionalData__ = {
+    ...additionalDataObj
+  }
 }

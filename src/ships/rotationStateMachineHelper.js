@@ -7,9 +7,11 @@ export const rotationStates = {
     states: {
       none: {
         on: {
-          ROTATE: "rotate",
+          ROTATE: {
+            target: "rotate",
+            cond: "rotationTimeHasPassed"
+          },
         },
-        entry: () => console.log("no rotation")
       },
       rotate: {
         on: {
@@ -23,22 +25,25 @@ export const rotationStates = {
 
 const actions = {
   rotateShip: assign((context, action) => {
-    if(action.time > context.nextRotationTime) {
-      let newFrame = context.ship.frame.name + (action.rotationDirection === "LEFT" ? -1 : 1)
-      if(newFrame < context.ship.__customAdditions__.SHIP_SPECS.frame.startIndex) {
-        newFrame = context.ship.__customAdditions__.SHIP_SPECS.frame.endIndex
-      } else if(newFrame > context.ship.__customAdditions__.SHIP_SPECS.frame.endIndex) {
-        newFrame = context.ship.__customAdditions__.SHIP_SPECS.frame.startIndex
-      }
-      context.ship.setFrame(newFrame)
+    let newFrame = context.ship.frame.name + (action.rotationDirection === "LEFT" ? -1 : 1)
+    if(newFrame < context.ship.__customAdditions__.SHIP_SPECS.frame.startIndex) {
+      newFrame = context.ship.__customAdditions__.SHIP_SPECS.frame.endIndex
+    } else if(newFrame > context.ship.__customAdditions__.SHIP_SPECS.frame.endIndex) {
+      newFrame = context.ship.__customAdditions__.SHIP_SPECS.frame.startIndex
+    }
+    context.ship.setFrame(newFrame)
 
-      return {
-        nextRotationTime: action.time + context.ship.__customAdditions__.SHIP_SPECS.thrust.rotationDamper
-      }
+    return {
+      nextRotationTime: action.time + context.ship.__customAdditions__.SHIP_SPECS.thrust.rotationDamper
     }
   }),
 }
 
+const guards = {
+  rotationTimeHasPassed: (context, action) => action.time >= context.nextRotationTime
+}
+
 export const rotationOptions = {
   actions,
+  guards,
 }

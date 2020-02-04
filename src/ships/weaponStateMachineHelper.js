@@ -17,7 +17,8 @@ export const weaponStates = {
             actions: ["weaponSecondaryFired"]
           },
           GAMETICK: {
-            actions: ["weaponsCharge"]
+            actions: ["weaponsCharge"],
+            cond: "weaponNeedsToCharge",
           }
         },
       },
@@ -40,7 +41,8 @@ export const weaponStates = {
 }
 
 const guards = {
-  weaponHasChargeToFire: context => context.weaponChargeLevel >= context.ship.__customAdditions__.SHIP_SPECS.weapon.cost
+  weaponHasChargeToFire: context => context.weaponChargeLevel >= context.ship.__customAdditions__.SHIP_SPECS.weapon.cost,
+  weaponNeedsToCharge: context => context.weaponChargeLevel < 100
 }
 
 const actions = {
@@ -70,14 +72,10 @@ const actions = {
   }),
 
   weaponsCharge: assign((context, action) => {
-    if(context.weaponChargeLevel === 100) return
-
-    // TODO: update the weapon charge meter too
-
     // update the charge level independent of the framerate
     const fpLevel = action.delta / context.ship.__customAdditions__.SHIP_SPECS.weapon.chargeDamper
     const newLevel = Math.min(100, context.weaponChargeLevel + fpLevel)
-    // this.weaponChargeLevelMeter.value = Math.floor(this.weaponCharge.level)
+    context.weaponChargeLevelMeter.value = Math.floor(newLevel)
     return {
       weaponChargeLevel: newLevel
     }
@@ -87,4 +85,19 @@ const actions = {
 export const weaponOptions = {
   guards,
   actions,
+}
+
+export function createWeaponChargeLevelMeter(ship) {
+  const weaponChargeContainer = document.createElement("div")
+  weaponChargeContainer.innerText = "W: "
+  const weaponChargeLevelMeter = document.createElement("meter")
+  weaponChargeLevelMeter.setAttribute("min", 0)
+  weaponChargeLevelMeter.setAttribute("max", 100)
+  weaponChargeLevelMeter.setAttribute("low", ship.__customAdditions__.SHIP_SPECS.weapon.cost)
+  weaponChargeLevelMeter.setAttribute("high", 99)
+  weaponChargeLevelMeter.setAttribute("optimum", 100)
+  weaponChargeLevelMeter.value = 100 //default to max
+  weaponChargeContainer.appendChild(weaponChargeLevelMeter)
+  document.querySelector(".game-meta-information").appendChild(weaponChargeContainer)
+  return weaponChargeLevelMeter
 }

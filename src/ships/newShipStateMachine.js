@@ -1,6 +1,6 @@
 import {Machine} from "xstate/dist/xstate.web"
 import {thrustStates, thrustOptions} from './thrustStateMachineHelper'
-import {weaponStates, weaponOptions} from "./weaponStateMachineHelper"
+import {weaponStates, weaponOptions, createWeaponChargeLevelMeter} from "./weaponStateMachineHelper"
 import {rotationStates, rotationOptions} from "./rotationStateMachineHelper"
 import {ALL_SHIPS_SPECS} from "./baseShip.js"
 
@@ -25,6 +25,8 @@ export function createPlayGameMachine({shipIndex=0, createContext, worldLayer} =
     }
   }
 
+  const weaponChargeLevelMeter = createWeaponChargeLevelMeter(ship)
+
   return Machine({
     id: "playGameMachine",
     initial: "dead",
@@ -32,6 +34,7 @@ export function createPlayGameMachine({shipIndex=0, createContext, worldLayer} =
       ship,
       weaponChargeLevel: 100,
       nextRotationTime: 0,
+      weaponChargeLevelMeter,
     },
     states: {
       dead: {
@@ -55,6 +58,7 @@ export function createPlayGameMachine({shipIndex=0, createContext, worldLayer} =
         },
       },
       attached: {
+        // not implemented yet
         on: {
           DETATCH: "flying",
           ATTACHED_SHIP_DESTROYED: "dead"
@@ -70,6 +74,7 @@ export function createPlayGameMachine({shipIndex=0, createContext, worldLayer} =
     guards: {
       ...thrustOptions.guards,
       ...weaponOptions.guards,
+      ...rotationOptions.guards,
     },
     actions: {
       setShipToDead: ctx => {
