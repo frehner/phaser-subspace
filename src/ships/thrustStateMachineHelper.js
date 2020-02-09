@@ -80,6 +80,10 @@ const actions = {
         y: (SHIP_FRAME_WIDTH / 2 - 4) * -Math.sin(radianBackwards)
       }
     });
+  },
+  
+  thrustNone: (context, action) => {
+    context.ship.setAcceleration(0)
   }
 }
 

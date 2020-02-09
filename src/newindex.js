@@ -52,22 +52,13 @@ function create() {
 
   // cursors config
   cursors = this.input.keyboard.createCursorKeys()
-  for(let key in cursors) {
-    mapKeyCodeToEventName(cursors[key])
-  }
 
   // ship config
-  // shipConfigObj = new baseShip({shipIndex: 0, createContext: this, worldLayer})
-  masterInputService = createMasterInputService({createContext: this})
+  masterInputService = createMasterInputService({createContext: this, worldLayer, map})
   masterInputService.onTransition(state => {
     // console.log(state.value)
     // console.log("statechanged", state.event)
   })
-
-  // camera follows this ship (put this here instead of the baseShip because the camera won't follow all ships created in the future)
-  // const camera = this.cameras.main
-  // camera.startFollow(shipConfigObj.ship)
-  // camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels)
 }
 
 function update(time, delta) {
@@ -122,42 +113,4 @@ function update(time, delta) {
     delta,
     phaserUpdateContext: this,
   })
-}
-
-function mapKeyCodeToEventName(keyObj) {
-  const additionalDataObj = {}
-  switch (keyObj.keyCode) {
-    // up and down
-    case 38:
-    case 40:
-      additionalDataObj.eventName = "NORMALTHRUST"
-      break;
-
-    // left and right
-    case 37:
-    case 39:
-      additionalDataObj.eventName = "ROTATE"
-      additionalDataObj.rotationDirection = keyObj.keyCode === 37 ? "LEFT" : "RIGHT"
-      break;
-
-    // space
-    case 32:
-      additionalDataObj.eventName = "PRIMARYWEAPON"
-      break;
-
-    case 16:
-      additionalDataObj.eventName = ""
-      break;
-
-    default:
-      throw Error("Key input not currently mapped")
-  }
-
-  if(!keyObj.__additionalData__) {
-    keyObj.__additionalData__ = {}
-  }
-
-  keyObj.__additionalData__ = {
-    ...additionalDataObj
-  }
 }

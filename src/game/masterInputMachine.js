@@ -2,7 +2,7 @@ import {Machine, assign, spawn, interpret, forwardTo} from "xstate/dist/xstate.w
 import {startMenuMachine} from "../startMenu/startMenuMachine.js"
 import {createPlayGameMachine} from "../ships/newShipStateMachine"
 
-export function createMasterInputService({createContext} = {}) {
+export function createMasterInputService({createContext, worldLayer, map} = {}) {
   const machine = Machine({
     id: 'masterInput',
     initial: 'startMenu',
@@ -24,7 +24,7 @@ export function createMasterInputService({createContext} = {}) {
       },
       playGame: {
         entry: assign({
-          playGameMachine: ctx => ctx.playGameMachine || spawn(createPlayGameMachine({createContext}), "playGameMachineId"),
+          playGameMachine: ctx => ctx.playGameMachine || spawn(createPlayGameMachine({createContext, worldLayer, map}), "playGameMachineId"),
         }),
         on: {
           ESCAPE_KEY: "startMenu",
