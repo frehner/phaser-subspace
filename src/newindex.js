@@ -76,20 +76,52 @@ function update(time, delta) {
     masterInputService.send("ESCAPE_KEY")
   }
 
-  for(let key in cursors) {
-    if(cursors[key].isDown) {
-      masterInputService.send({
-        type: cursors[key].__additionalData__.eventName,
-        phaserUpdateContext: this,
-        worldLayer,
-        delta,
-        time,
-        ...cursors[key].__additionalData__
-      })
-    }
+  if(cursors.left.isDown || cursors.right.isDown) {
+    masterInputService.send({
+      type: "ROTATE",
+      rotationDirection: cursors.left.isDown ? "LEFT" : "RIGHT",
+      phaserUpdateContext: this,
+      worldLayer,
+      delta,
+      time,
+    })
   }
 
-  masterInputService.send({type: "GAMETICK", time, delta})
+  if(cursors.space.isDown) {
+    masterInputService.send({
+      type: "PRIMARYWEAPON",
+      phaserUpdateContext: this,
+      worldLayer,
+      delta,
+      time,
+    })
+  }
+
+  if(cursors.up.isDown || cursors.down.isDown) {
+    masterInputService.send({
+      type: cursors.shift.isDown ? "BOOSTTHRUST": "NORMALTHRUST",
+      thrustDirection: cursors.up.isDown ? "FORWARD" : "BACKWARD",
+      phaserUpdateContext: this,
+      worldLayer,
+      delta,
+      time,
+    })
+  } else {
+    masterInputService.send({
+      type: "NOTHRUST",
+      phaserUpdateContext: this,
+      worldLayer,
+      delta,
+      time,
+    })
+  }
+
+  masterInputService.send({
+    type: "GAMETICK",
+    time,
+    delta,
+    phaserUpdateContext: this,
+  })
 }
 
 function mapKeyCodeToEventName(keyObj) {

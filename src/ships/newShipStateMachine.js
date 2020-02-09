@@ -7,6 +7,7 @@ import {ALL_SHIPS_SPECS} from "./baseShip.js"
 export function createPlayGameMachine({shipIndex=0, createContext, worldLayer} = {}) {
   const shipSpecs = ALL_SHIPS_SPECS[shipIndex]
   const ship = createContext.physics.add.sprite(window.innerWidth / 2, window.innerHeight / 2, "ships", shipSpecs.frame.startIndex)
+
   ship.__customAdditions__ = {SHIP_SPECS: shipSpecs}
   ship.__customAdditions__.getFacingData = function() {
     // there are 40 different frames for each ship. 360deg / 40 = 9deg for a frame.
@@ -27,6 +28,8 @@ export function createPlayGameMachine({shipIndex=0, createContext, worldLayer} =
 
   const weaponChargeLevelMeter = createWeaponChargeLevelMeter(ship)
 
+  createContext.physics.add.collider(ship, worldLayer)
+
   return Machine({
     id: "playGameMachine",
     initial: "dead",
@@ -35,6 +38,7 @@ export function createPlayGameMachine({shipIndex=0, createContext, worldLayer} =
       weaponChargeLevel: 100,
       nextRotationTime: 0,
       weaponChargeLevelMeter,
+      thrustBoostChargeLevel: 100,
     },
     states: {
       dead: {
@@ -85,6 +89,7 @@ export function createPlayGameMachine({shipIndex=0, createContext, worldLayer} =
       },
       ...weaponOptions.actions,
       ...rotationOptions.actions,
+      ...thrustOptions.actions,
     },
   })
 }
