@@ -112,5 +112,7 @@ function update(time, delta) {
     time,
     delta,
     phaserUpdateContext: this,
+    thrustDirection: cursors.up.isDown ? "FORWARD" : "BACKWARD",
+    typeOfThrust: cursors.shift.isDown ? "BOOSTTHRUST" : "NORMALTHRUST"
   })
 }
