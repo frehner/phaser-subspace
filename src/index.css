@@ -11,3 +11,7 @@ html, body {
   position: absolute;
   font-family: monospace;
 }
+
+.game-meta-information meter::-webkit-meter-bar {
+  background: transparent;
+}

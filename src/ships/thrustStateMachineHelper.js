@@ -1,52 +1,5 @@
-import {assign} from "xstate/dist/xstate.web"
+import {Machine, assign} from "xstate/dist/xstate.web"
 import {SHIP_FRAME_WIDTH} from "./baseShip.js"
-
-export const thrustStates = {
-  thrust: {
-    initial: "none",
-    states: {
-      none: {
-        on: {
-          NORMALTHRUST: "normal",
-          BOOSTTHRUST: {
-            target: "boost",
-            cond: "shipHasBoostToBoost"
-          },
-          GAMETICK: {
-            actions: ["boostCharge", "thrustNone"],
-          }
-        },
-      },
-      normal: {
-        on: {
-          NOTHRUST: "none",
-          BOOSTTHRUST: {
-            target: "boost",
-            cond: "shipHasBoostToBoost"
-          },
-          GAMETICK: {
-            actions: ["thrustNormal", "boostCharge"],
-          },
-        },
-      },
-      boost: {
-        on: {
-          NOTHRUST: "none",
-          NORMALTHRUST: "normal",
-          GAMETICK: [
-            {
-              actions: ["boostDrain", "thrustBoost"],
-              cond: "shipHasBoostToBoost"
-            },
-            {
-              target: "normal",
-            }
-          ]
-        },
-      }
-    }
-  },
-}
 
 const actions = {
   thrustNormal: assign((context, action) => {
@@ -102,12 +55,7 @@ const guards = {
   shipHasBoostToBoost: context => context.thrustBoostChargeLevel > 0,
 }
 
-export const thrustOptions = {
-  actions,
-  guards,
-}
-
-export function createBoostChargeLevelMeter() {
+function createBoostChargeLevelMeter() {
   const boostChargeContainer = document.createElement("div")
   boostChargeContainer.innerText = "B: "
   const boostChargeLevelMeter = document.createElement("meter")
@@ -151,3 +99,71 @@ function handleThrust({context, action, typeOfThrust, thrustDirection}) {
     }
   });
 }
+
+export const thrustStateMachine = Machine(
+  {
+    initial: "setupContext",
+    context: {},
+    states: {
+      setupContext: { // the hope is that this type of solution isn't necessary in the future. but it is for now: https://github.com/davidkpiano/xstate/issues/993
+        exit: assign(context => {
+          return {
+            thrustBoostChargeLevel: 100,
+            thrustDirection: null,
+            boostChargeLevelMeter: createBoostChargeLevelMeter(),
+            ship: {},
+            ...context,
+          }
+        }),
+        on: {
+          "": {
+            target: "none"
+          }
+        }
+      },
+      none: {
+        on: {
+          NORMALTHRUST: "normal",
+          BOOSTTHRUST: {
+            target: "boost",
+            cond: "shipHasBoostToBoost"
+          },
+          GAMETICK: {
+            actions: ["boostCharge", "thrustNone"],
+          }
+        },
+      },
+      normal: {
+        on: {
+          NOTHRUST: "none",
+          BOOSTTHRUST: {
+            target: "boost",
+            cond: "shipHasBoostToBoost"
+          },
+          GAMETICK: {
+            actions: ["thrustNormal", "boostCharge"],
+          },
+        },
+      },
+      boost: {
+        on: {
+          NOTHRUST: "none",
+          NORMALTHRUST: "normal",
+          GAMETICK: [
+            {
+              actions: ["boostDrain", "thrustBoost"],
+              cond: "shipHasBoostToBoost"
+            },
+            {
+              target: "normal",
+            }
+          ]
+        },
+      }
+    }
+  },
+  {
+    actions,
+    guards,
+  }
+)

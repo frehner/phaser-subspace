@@ -1,5 +1,5 @@
 import {Machine, assign} from "xstate/dist/xstate.web"
-import {thrustStates, thrustOptions, createBoostChargeLevelMeter} from './thrustStateMachineHelper'
+import {thrustStateMachine} from './thrustStateMachineHelper'
 import {weaponStates, weaponOptions, createWeaponChargeLevelMeter} from "./weaponStateMachineHelper"
 import {rotationStates, rotationOptions} from "./rotationStateMachineHelper"
 import {ALL_SHIPS_SPECS} from "./baseShip.js"
@@ -13,16 +13,13 @@ export function createPlayGameMachine({shipIndex=0, createContext, worldLayer, m
       weaponChargeLevel: 100,
       nextRotationTime: 0,
       weaponChargeLevelMeter: null,
-      thrustBoostChargeLevel: 100,
-      thrustDirection: null,
-      thrustChargeLevelMeter: null,
     },
     states: {
       dead: {
         entry: ["setShipToDead"],
         exit: ["setShipToAlive"],
         after: {
-          3000: "flying"
+          1000: "flying"
         },
       },
       flying: {
@@ -33,7 +30,16 @@ export function createPlayGameMachine({shipIndex=0, createContext, worldLayer, m
         },
         type: 'parallel',
         states: {
-          ...thrustStates,
+          thrust: {
+            invoke: {
+              src: thrustStateMachine,
+              id: "thrustMachineId",
+              autoForward: true,
+              data: {
+                ship: context => context.ship
+              }
+            }
+          },
           ...weaponStates,
           ...rotationStates,
         },
@@ -53,7 +59,6 @@ export function createPlayGameMachine({shipIndex=0, createContext, worldLayer, m
     }
   }, {
     guards: {
-      ...thrustOptions.guards,
       ...weaponOptions.guards,
       ...rotationOptions.guards,
     },
@@ -87,7 +92,6 @@ export function createPlayGameMachine({shipIndex=0, createContext, worldLayer, m
         }
 
         const weaponChargeLevelMeter = createWeaponChargeLevelMeter(ship)
-        const boostChargeLevelMeter = createBoostChargeLevelMeter()
 
         // collides with the world and objects
         createContext.physics.add.collider(ship, worldLayer)
@@ -102,13 +106,11 @@ export function createPlayGameMachine({shipIndex=0, createContext, worldLayer, m
           ship,
           weaponChargeLevel: 100,
           weaponChargeLevelMeter,
-          boostChargeLevelMeter,
         }
       }),
 
       ...weaponOptions.actions,
       ...rotationOptions.actions,
-      ...thrustOptions.actions,
     },
   })
 }
