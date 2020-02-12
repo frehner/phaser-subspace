@@ -1,7 +1,7 @@
 import {Machine, assign} from "xstate/dist/xstate.web"
 import {thrustStateMachine} from './thrustStateMachineHelper'
-import {weaponStates, weaponOptions, createWeaponChargeLevelMeter} from "./weaponStateMachineHelper"
-import {rotationStates, rotationOptions} from "./rotationStateMachineHelper"
+import {weaponStateMachine} from "./weaponStateMachineHelper"
+import {rotationStateMachine} from "./rotationStateMachineHelper"
 import {ALL_SHIPS_SPECS} from "./baseShip.js"
 
 export function createPlayGameMachine({shipIndex=0, createContext, worldLayer, map} = {}) {
@@ -10,9 +10,6 @@ export function createPlayGameMachine({shipIndex=0, createContext, worldLayer, m
     initial: "dead",
     context: {
       ship: null,
-      weaponChargeLevel: 100,
-      nextRotationTime: 0,
-      weaponChargeLevelMeter: null,
     },
     states: {
       dead: {
@@ -40,8 +37,26 @@ export function createPlayGameMachine({shipIndex=0, createContext, worldLayer, m
               }
             }
           },
-          ...weaponStates,
-          ...rotationStates,
+          weapons: {
+            invoke: {
+              src: weaponStateMachine,
+              id: "weaponMachineId",
+              autoForward: true,
+              data: {
+                ship: context => context.ship
+              }
+            }
+          },
+          rotation: {
+            invoke: {
+              src: rotationStateMachine,
+              id: "rotationMachineId",
+              autoForward: true,
+              data: {
+                ship: context => context.ship
+              }
+            }
+          }
         },
       },
       attached: {
@@ -52,16 +67,10 @@ export function createPlayGameMachine({shipIndex=0, createContext, worldLayer, m
         },
         type: 'parallel',
         states: {
-          ...weaponStates,
-          ...rotationStates,
         },
       }
     }
   }, {
-    guards: {
-      ...weaponOptions.guards,
-      ...rotationOptions.guards,
-    },
     actions: {
       setShipToDead: ctx => {
         if(ctx.ship) {
@@ -91,8 +100,6 @@ export function createPlayGameMachine({shipIndex=0, createContext, worldLayer, m
           }
         }
 
-        const weaponChargeLevelMeter = createWeaponChargeLevelMeter(ship)
-
         // collides with the world and objects
         createContext.physics.add.collider(ship, worldLayer)
 
@@ -104,13 +111,8 @@ export function createPlayGameMachine({shipIndex=0, createContext, worldLayer, m
         ship.setVisible(true).setActive(true)
         return {
           ship,
-          weaponChargeLevel: 100,
-          weaponChargeLevelMeter,
         }
       }),
-
-      ...weaponOptions.actions,
-      ...rotationOptions.actions,
     },
   })
 }

@@ -1,44 +1,5 @@
-import {assign} from "xstate/dist/xstate.web"
+import {Machine, assign} from "xstate/dist/xstate.web"
 import {SHIP_FRAME_WIDTH} from "./baseShip.js"
-
-export const weaponStates = {
-  weapons: {
-    initial: "pending",
-    states: {
-      pending: {
-        on: {
-          PRIMARYWEAPON: {
-            target: "primary",
-            actions: ["weaponPrimaryFired"],
-            cond: "weaponHasChargeToFire",
-          },
-          SECONDARYWEAPON: {
-            target: "secondary",
-            actions: ["weaponSecondaryFired"]
-          },
-          GAMETICK: {
-            actions: ["weaponsCharge"],
-            cond: "weaponNeedsToCharge",
-          }
-        },
-      },
-      primary: {
-        on: {
-          "": {
-            target: "pending",
-          }
-        }
-      },
-      secondary: {
-        on: {
-          "": {
-            target: "pending",
-          }
-        }
-      },
-    },
-  }
-}
 
 const guards = {
   weaponHasChargeToFire: context => context.weaponChargeLevel >= context.ship.__customAdditions__.SHIP_SPECS.weapon.cost,
@@ -82,12 +43,7 @@ const actions = {
   })
 }
 
-export const weaponOptions = {
-  guards,
-  actions,
-}
-
-export function createWeaponChargeLevelMeter(ship) {
+function createWeaponChargeLevelMeter(ship) {
   const weaponChargeContainer = document.createElement("div")
   weaponChargeContainer.innerText = "W: "
   const weaponChargeLevelMeter = document.createElement("meter")
@@ -101,3 +57,59 @@ export function createWeaponChargeLevelMeter(ship) {
   document.querySelector(".game-meta-information").appendChild(weaponChargeContainer)
   return weaponChargeLevelMeter
 }
+
+export const weaponStateMachine = Machine({
+  initial: "setupContext",
+  context: {},
+  states: {
+    setupContext: {
+      entry: assign(context => {
+        return {
+          weaponChargeLevel: 100,
+          weaponChargeLevelMeter: createWeaponChargeLevelMeter(context.ship),
+          ship: {},
+          ...context,
+        }
+      }),
+      on: {
+        "": {
+          target: "pending"
+        }
+      }
+    },
+    pending: {
+      on: {
+        PRIMARYWEAPON: {
+          target: "primary",
+          actions: ["weaponPrimaryFired"],
+          cond: "weaponHasChargeToFire",
+        },
+        SECONDARYWEAPON: {
+          target: "secondary",
+          actions: ["weaponSecondaryFired"]
+        },
+        GAMETICK: {
+          actions: ["weaponsCharge"],
+          cond: "weaponNeedsToCharge",
+        }
+      },
+    },
+    primary: {
+      on: {
+        "": {
+          target: "pending",
+        }
+      }
+    },
+    secondary: {
+      on: {
+        "": {
+          target: "pending",
+        }
+      }
+    },
+  },
+}, {
+  actions,
+  guards,
+})

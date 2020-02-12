@@ -106,7 +106,7 @@ export const thrustStateMachine = Machine(
     context: {},
     states: {
       setupContext: { // the hope is that this type of solution isn't necessary in the future. but it is for now: https://github.com/davidkpiano/xstate/issues/993
-        exit: assign(context => {
+        entry: assign(context => {
           return {
             thrustBoostChargeLevel: 100,
             thrustDirection: null,

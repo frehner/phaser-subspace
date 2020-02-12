@@ -1,27 +1,4 @@
-import { assign } from "xstate/dist/xstate.web"
-
-export const rotationStates = {
-  rotation: {
-    id: "rotation",
-    initial: "none",
-    states: {
-      none: {
-        on: {
-          ROTATE: {
-            target: "rotate",
-            cond: "rotationTimeHasPassed"
-          },
-        },
-      },
-      rotate: {
-        on: {
-          "": "none",
-        },
-        entry: ["rotateShip"]
-      },
-    }
-  },
-}
+import { Machine, assign } from "xstate/dist/xstate.web"
 
 const actions = {
   rotateShip: assign((context, action) => {
@@ -43,7 +20,40 @@ const guards = {
   rotationTimeHasPassed: (context, action) => action.time >= context.nextRotationTime
 }
 
-export const rotationOptions = {
+export const rotationStateMachine = Machine({
+  id: "rotation",
+  initial: "setupContext",
+  context: {},
+  states: {
+    setupContext: {
+      entry: assign(context => {
+        return {
+          nextRotationTime: 0,
+          ...context
+        }
+      }),
+      on: {
+        "": {
+          target: "none"
+        }
+      }
+    },
+    none: {
+      on: {
+        ROTATE: {
+          target: "rotate",
+          cond: "rotationTimeHasPassed"
+        },
+      },
+    },
+    rotate: {
+      on: {
+        "": "none",
+      },
+      entry: ["rotateShip"]
+    },
+  }
+}, {
   actions,
   guards,
-}
+})
