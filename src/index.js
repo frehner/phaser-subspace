@@ -1,8 +1,5 @@
-import {
-  baseShip,
-  SHIP_FRAME_WIDTH,
-  BULLET_FRAME_WIDTH
-} from "./ships/baseShip";
+import { createMasterInputService } from "./game/masterInputMachine.js";
+import { SHIP_FRAME_WIDTH, BULLET_FRAME_WIDTH } from "./ship/shipData.js";
 import "./index.css";
 import shipsImg from "../assets/ships.png";
 import bulletsImg from "../assets/bullets.png";
@@ -28,7 +25,7 @@ const config = {
 };
 
 const game = new Phaser.Game(config);
-let shipConfigObj, cursors, worldLayer;
+let masterInputService, cursors, worldLayer, tempCounter;
 
 function preload() {
   this.load.spritesheet("ships", shipsImg, { frameWidth: SHIP_FRAME_WIDTH });
@@ -59,24 +56,69 @@ function create() {
   cursors = this.input.keyboard.createCursorKeys();
 
   // ship config
-  shipConfigObj = new baseShip({
-    shipIndex: 0,
+  masterInputService = createMasterInputService({
     createContext: this,
-    worldLayer
+    worldLayer,
+    map
   });
-
-  // camera follows this ship (put this here instead of the baseShip because the camera won't follow all ships created in the future)
-  const camera = this.cameras.main;
-  camera.startFollow(shipConfigObj.ship);
-  camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+  masterInputService.onTransition(state => {
+    // console.log(state.value)
+    // console.log("statechanged", state.event)
+  });
 }
 
 function update(time, delta) {
-  shipConfigObj.updateLoop({
+  if (!tempCounter) {
+    tempCounter = 1;
+    masterInputService.send("ESCAPE_KEY");
+  }
+
+  if (cursors.left.isDown || cursors.right.isDown) {
+    masterInputService.send({
+      type: "ROTATE",
+      rotationDirection: cursors.left.isDown ? "LEFT" : "RIGHT",
+      phaserUpdateContext: this,
+      worldLayer,
+      delta,
+      time
+    });
+  }
+
+  if (cursors.space.isDown) {
+    masterInputService.send({
+      type: "PRIMARYWEAPON",
+      phaserUpdateContext: this,
+      worldLayer,
+      delta,
+      time
+    });
+  }
+
+  if (cursors.up.isDown || cursors.down.isDown) {
+    masterInputService.send({
+      type: cursors.shift.isDown ? "BOOSTTHRUST" : "NORMALTHRUST",
+      thrustDirection: cursors.up.isDown ? "FORWARD" : "BACKWARD",
+      phaserUpdateContext: this,
+      worldLayer,
+      delta,
+      time
+    });
+  } else {
+    masterInputService.send({
+      type: "NOTHRUST",
+      phaserUpdateContext: this,
+      worldLayer,
+      delta,
+      time
+    });
+  }
+
+  masterInputService.send({
+    type: "GAMETICK",
     time,
     delta,
-    updateContext: this,
-    cursors,
-    worldLayer
+    phaserUpdateContext: this,
+    thrustDirection: cursors.up.isDown ? "FORWARD" : "BACKWARD",
+    typeOfThrust: cursors.shift.isDown ? "BOOSTTHRUST" : "NORMALTHRUST"
   });
 }

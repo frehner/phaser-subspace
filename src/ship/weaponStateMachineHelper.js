@@ -1,5 +1,5 @@
 import { Machine, assign } from "xstate/dist/xstate.web";
-import { SHIP_FRAME_WIDTH } from "./baseShip.js";
+import { SHIP_FRAME_WIDTH } from "./shipData.js";
 
 const guards = {
   weaponHasChargeToFire: context =>

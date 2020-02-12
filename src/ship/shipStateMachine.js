@@ -2,7 +2,7 @@ import { Machine, assign } from "xstate/dist/xstate.web";
 import { thrustStateMachine } from "./thrustStateMachineHelper";
 import { weaponStateMachine } from "./weaponStateMachineHelper";
 import { rotationStateMachine } from "./rotationStateMachineHelper";
-import { ALL_SHIPS_SPECS } from "./baseShip.js";
+import { ALL_SHIPS_SPECS } from "./shipData.js";
 
 export function createPlayGameMachine({
   shipIndex = 0,

@@ -6,7 +6,7 @@ import {
   forwardTo
 } from "xstate/dist/xstate.web";
 import { startMenuMachine } from "../startMenu/startMenuMachine.js";
-import { createPlayGameMachine } from "../ships/newShipStateMachine";
+import { createPlayGameMachine } from "../ship/shipStateMachine.js";
 
 export function createMasterInputService({
   createContext,
