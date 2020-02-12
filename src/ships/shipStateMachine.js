@@ -1,8 +1,6 @@
-import {Machine} from "xstate/dist/xstate.web"
+import { Machine } from "xstate/dist/xstate.web";
 
-export {
-  createShipStateMachine
-}
+export { createShipStateMachine };
 
 const rotationStates = {
   rotation: {
@@ -11,18 +9,18 @@ const rotationStates = {
     states: {
       none: {
         on: {
-          ROTATE: "rotate",
-        },
+          ROTATE: "rotate"
+        }
       },
       rotate: {
         on: {
-          NOROTATE: "none",
+          NOROTATE: "none"
         },
         activities: ["rotateRotate"]
-      },
+      }
     }
-  },
-}
+  }
+};
 
 const thrustStates = {
   thrust: {
@@ -34,10 +32,10 @@ const thrustStates = {
           BOOSTTHRUST: {
             target: "boost",
             cond: "thrustBoostHasCharge"
-          },
+          }
         },
         entry: ["thrustNone"],
-        activities: ["thrustCharge"],
+        activities: ["thrustCharge"]
       },
       normal: {
         on: {
@@ -45,20 +43,20 @@ const thrustStates = {
           BOOSTTHRUST: {
             target: "boost",
             cond: "thrustBoostHasCharge"
-          },
+          }
         },
-        activities: ["thrustNormal", "thrustCharge"],
+        activities: ["thrustNormal", "thrustCharge"]
       },
       boost: {
         on: {
           NOTHRUST: "none",
           NORMALTHRUST: "normal"
         },
-        activities: ["thrustNormal", "thrustDrain"],
+        activities: ["thrustNormal", "thrustDrain"]
       }
     }
-  },
-}
+  }
+};
 
 const weaponStates = {
   weapons: {
@@ -69,44 +67,47 @@ const weaponStates = {
           PRIMARYWEAPON: {
             target: "primary",
             actions: ["weaponPrimaryFired"],
-            cond: "weaponHasChargeToFire",
+            cond: "weaponHasChargeToFire"
           },
           SECONDARYWEAPON: {
             target: "secondary",
             actions: ["weaponSecondaryFired"]
-          },
+          }
         },
         activities: ["weaponsCharge"]
       },
       primary: {
         on: {
           "": {
-            target: "pending",
+            target: "pending"
           }
         }
       },
       secondary: {
         on: {
           "": {
-            target: "pending",
+            target: "pending"
           }
         }
-      },
-    },
+      }
+    }
   }
-}
+};
 
 const weaponOptions = {
   guards: {
-    weaponHasChargeToFire: context => context.ship.weaponCharge.level >= context.ship.SHIP_SPECS.weapon.cost
+    weaponHasChargeToFire: context =>
+      context.ship.weaponCharge.level >= context.ship.SHIP_SPECS.weapon.cost
   }
-}
+};
 
 const thrustOptions = {
   guards: {
-    thrustBoostHasCharge: context => context.ship.thrustBoostCharge >= context.ship.SHIP_SPECS.boostThrust.chargeDamper
+    thrustBoostHasCharge: context =>
+      context.ship.thrustBoostCharge >=
+      context.ship.SHIP_SPECS.boostThrust.chargeDamper
   }
-}
+};
 
 const shipMockObjectForDataVizGraph = {
   weaponCharge: {
@@ -118,10 +119,10 @@ const shipMockObjectForDataVizGraph = {
       cost: 1
     },
     boostThrust: {
-      chargeDamper: 16,
+      chargeDamper: 16
     }
   }
-}
+};
 
 function createShipStateMachine(ship = shipMockObjectForDataVizGraph) {
   return Machine(
@@ -129,7 +130,7 @@ function createShipStateMachine(ship = shipMockObjectForDataVizGraph) {
       id: "ship",
       type: "parallel",
       context: {
-        ship,
+        ship
       },
       states: {
         ...weaponStates,
@@ -140,10 +141,10 @@ function createShipStateMachine(ship = shipMockObjectForDataVizGraph) {
     {
       guards: {
         ...weaponOptions.guards,
-        ...thrustOptions.guards,
+        ...thrustOptions.guards
       }
     }
-  )
+  );
 }
 
 // createShipStateMachine()

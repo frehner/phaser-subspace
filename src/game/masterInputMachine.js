@@ -1,30 +1,45 @@
-import {Machine, assign, spawn, interpret, forwardTo} from "xstate/dist/xstate.web"
-import {startMenuMachine} from "../startMenu/startMenuMachine.js"
-import {createPlayGameMachine} from "../ships/newShipStateMachine"
+import {
+  Machine,
+  assign,
+  spawn,
+  interpret,
+  forwardTo
+} from "xstate/dist/xstate.web";
+import { startMenuMachine } from "../startMenu/startMenuMachine.js";
+import { createPlayGameMachine } from "../ships/newShipStateMachine";
 
-export function createMasterInputService({createContext, worldLayer, map} = {}) {
+export function createMasterInputService({
+  createContext,
+  worldLayer,
+  map
+} = {}) {
   const machine = Machine({
-    id: 'masterInput',
-    initial: 'startMenu',
+    id: "masterInput",
+    initial: "startMenu",
     context: {
       userData: null,
-      playGameMachine: null,
+      playGameMachine: null
     },
     states: {
       startMenu: {
         invoke: {
           src: startMenuMachine,
           id: "startMenuMachineId",
-          onDone: 'playGame',
-          autoForward: true,
+          onDone: "playGame",
+          autoForward: true
         },
         on: {
-          ESCAPE_KEY: "playGame",
+          ESCAPE_KEY: "playGame"
         }
       },
       playGame: {
         entry: assign({
-          playGameMachine: ctx => ctx.playGameMachine || spawn(createPlayGameMachine({createContext, worldLayer, map}), "playGameMachineId"),
+          playGameMachine: ctx =>
+            ctx.playGameMachine ||
+            spawn(
+              createPlayGameMachine({ createContext, worldLayer, map }),
+              "playGameMachineId"
+            )
         }),
         on: {
           ESCAPE_KEY: "startMenu",
@@ -32,9 +47,9 @@ export function createMasterInputService({createContext, worldLayer, map} = {}) 
             actions: forwardTo("playGameMachineId")
           }
         }
-      },
+      }
     }
-  })
+  });
 
-  return interpret(machine).start()
+  return interpret(machine).start();
 }

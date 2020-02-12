@@ -1,4 +1,4 @@
-import {Machine} from "xstate/dist/xstate.web"
+import { Machine } from "xstate/dist/xstate.web";
 
 export const startMenuMachine = Machine({
   id: "startMenuMachine",
@@ -6,4 +6,4 @@ export const startMenuMachine = Machine({
   states: {
     waitingForInput: {}
   }
-})
+});
