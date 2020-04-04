@@ -8,28 +8,28 @@ export function createPlayGameMachine({
   shipIndex = 0,
   createContext,
   worldLayer,
-  map
+  map,
 } = {}) {
   return Machine(
     {
       id: "playGameMachine",
       initial: "dead",
       context: {
-        ship: null
+        ship: null,
       },
       states: {
         dead: {
           entry: ["setShipToDead"],
           exit: ["setShipToAlive"],
           after: {
-            1000: "flying"
-          }
+            1000: "flying",
+          },
         },
         flying: {
           // main game
           on: {
             SHIP_DESTROYED: "dead",
-            SHIP_ATTACHED: "attached"
+            SHIP_ATTACHED: "attached",
           },
           type: "parallel",
           states: {
@@ -39,9 +39,9 @@ export function createPlayGameMachine({
                 id: "thrustMachineId",
                 autoForward: true,
                 data: {
-                  ship: context => context.ship
-                }
-              }
+                  ship: (context) => context.ship,
+                },
+              },
             },
             weapons: {
               invoke: {
@@ -49,9 +49,9 @@ export function createPlayGameMachine({
                 id: "weaponMachineId",
                 autoForward: true,
                 data: {
-                  ship: context => context.ship
-                }
-              }
+                  ship: (context) => context.ship,
+                },
+              },
             },
             rotation: {
               invoke: {
@@ -59,32 +59,32 @@ export function createPlayGameMachine({
                 id: "rotationMachineId",
                 autoForward: true,
                 data: {
-                  ship: context => context.ship
-                }
-              }
-            }
-          }
+                  ship: (context) => context.ship,
+                },
+              },
+            },
+          },
         },
         attached: {
           // not implemented yet
           on: {
             DETATCH: "flying",
-            ATTACHED_SHIP_DESTROYED: "dead"
+            ATTACHED_SHIP_DESTROYED: "dead",
           },
           type: "parallel",
-          states: {}
-        }
-      }
+          states: {},
+        },
+      },
     },
     {
       actions: {
-        setShipToDead: ctx => {
+        setShipToDead: (ctx) => {
           if (ctx.ship) {
             ctx.ship.setVisible(false).setActive(false);
           }
         },
 
-        setShipToAlive: assign(ctx => {
+        setShipToAlive: assign((ctx) => {
           const shipSpecs = ALL_SHIPS_SPECS[shipIndex];
           const ship = createContext.physics.add.sprite(
             window.innerWidth / 2,
@@ -94,7 +94,7 @@ export function createPlayGameMachine({
           );
 
           ship.__customAdditions__ = { SHIP_SPECS: shipSpecs };
-          ship.__customAdditions__.getFacingData = function() {
+          ship.__customAdditions__.getFacingData = function () {
             // there are 40 different frames for each ship. 360deg / 40 = 9deg for a frame.
             const directionFacing = ship.frame.name % 40;
             const degreeFacing = ((-directionFacing + 90) * 9) % 360;
@@ -107,7 +107,7 @@ export function createPlayGameMachine({
               degreeFacing,
               degreeBackwards,
               radianFacing,
-              radianBackwards
+              radianBackwards,
             };
           };
 
@@ -121,10 +121,10 @@ export function createPlayGameMachine({
 
           ship.setVisible(true).setActive(true);
           return {
-            ship
+            ship,
           };
-        })
-      }
+        }),
+      },
     }
   );
 }

@@ -4,6 +4,6 @@ export const startMenuMachine = Machine({
   id: "startMenuMachine",
   initial: "waitingForInput",
   states: {
-    waitingForInput: {}
-  }
+    waitingForInput: {},
+  },
 });

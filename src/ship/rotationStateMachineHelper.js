@@ -18,14 +18,14 @@ const actions = {
     return {
       nextRotationTime:
         action.time +
-        context.ship.__customAdditions__.SHIP_SPECS.thrust.rotationDamper
+        context.ship.__customAdditions__.SHIP_SPECS.thrust.rotationDamper,
     };
-  })
+  }),
 };
 
 const guards = {
   rotationTimeHasPassed: (context, action) =>
-    action.time >= context.nextRotationTime
+    action.time >= context.nextRotationTime,
 };
 
 export const rotationStateMachine = Machine(
@@ -35,36 +35,36 @@ export const rotationStateMachine = Machine(
     context: {},
     states: {
       setupContext: {
-        entry: assign(context => {
+        entry: assign((context) => {
           return {
             nextRotationTime: 0,
-            ...context
+            ...context,
           };
         }),
         on: {
           "": {
-            target: "none"
-          }
-        }
+            target: "none",
+          },
+        },
       },
       none: {
         on: {
           ROTATE: {
             target: "rotate",
-            cond: "rotationTimeHasPassed"
-          }
-        }
+            cond: "rotationTimeHasPassed",
+          },
+        },
       },
       rotate: {
         on: {
-          "": "none"
+          "": "none",
         },
-        entry: ["rotateShip"]
-      }
-    }
+        entry: ["rotateShip"],
+      },
+    },
   },
   {
     actions,
-    guards
+    guards,
   }
 );

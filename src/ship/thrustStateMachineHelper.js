@@ -8,10 +8,10 @@ const actions = {
       context,
       action,
       typeOfThrust: "thrust",
-      thrustDirection
+      thrustDirection,
     });
     return {
-      thrustDirection
+      thrustDirection,
     };
   }),
 
@@ -21,10 +21,10 @@ const actions = {
       context,
       action,
       typeOfThrust: "boostThrust",
-      thrustDirection
+      thrustDirection,
     });
     return {
-      thrustDirection
+      thrustDirection,
     };
   }),
 
@@ -39,7 +39,7 @@ const actions = {
     const newLevel = Math.max(0, context.thrustBoostChargeLevel - drainLevel);
     context.boostChargeLevelMeter.value = newLevel;
     return {
-      thrustBoostChargeLevel: newLevel
+      thrustBoostChargeLevel: newLevel,
     };
   }),
 
@@ -53,13 +53,13 @@ const actions = {
     );
     context.boostChargeLevelMeter.value = newLevel;
     return {
-      thrustBoostChargeLevel: newLevel
+      thrustBoostChargeLevel: newLevel,
     };
-  })
+  }),
 };
 
 const guards = {
-  shipHasBoostToBoost: context => context.thrustBoostChargeLevel > 0
+  shipHasBoostToBoost: (context) => context.thrustBoostChargeLevel > 0,
 };
 
 function createBoostChargeLevelMeter() {
@@ -82,7 +82,7 @@ function createBoostChargeLevelMeter() {
 function handleThrust({ context, action, typeOfThrust, thrustDirection }) {
   const {
     radianFacing,
-    radianBackwards
+    radianBackwards,
   } = context.ship.__customAdditions__.getFacingData();
   const acceleration =
     context.ship.__customAdditions__.SHIP_SPECS[typeOfThrust].acceleration;
@@ -115,8 +115,8 @@ function handleThrust({ context, action, typeOfThrust, thrustDirection }) {
     followOffset: {
       x: (SHIP_FRAME_WIDTH / 2 - 4) * Math.cos(radianBackwards),
       // you have to make sin negative for y because in cirlces, a positive y is up and negative y is down, whereas the opposite is true for canvas
-      y: (SHIP_FRAME_WIDTH / 2 - 4) * -Math.sin(radianBackwards)
-    }
+      y: (SHIP_FRAME_WIDTH / 2 - 4) * -Math.sin(radianBackwards),
+    },
   });
 }
 
@@ -127,44 +127,44 @@ export const thrustStateMachine = Machine(
     states: {
       setupContext: {
         // the hope is that this type of solution isn't necessary in the future. but it is for now: https://github.com/davidkpiano/xstate/issues/993
-        entry: assign(context => {
+        entry: assign((context) => {
           return {
             thrustBoostChargeLevel: 100,
             thrustDirection: null,
             boostChargeLevelMeter: createBoostChargeLevelMeter(),
             ship: {},
-            ...context
+            ...context,
           };
         }),
         on: {
           "": {
-            target: "none"
-          }
-        }
+            target: "none",
+          },
+        },
       },
       none: {
         on: {
           NORMALTHRUST: "normal",
           BOOSTTHRUST: {
             target: "boost",
-            cond: "shipHasBoostToBoost"
+            cond: "shipHasBoostToBoost",
           },
           GAMETICK: {
-            actions: ["boostCharge", "thrustNone"]
-          }
-        }
+            actions: ["boostCharge", "thrustNone"],
+          },
+        },
       },
       normal: {
         on: {
           NOTHRUST: "none",
           BOOSTTHRUST: {
             target: "boost",
-            cond: "shipHasBoostToBoost"
+            cond: "shipHasBoostToBoost",
           },
           GAMETICK: {
-            actions: ["thrustNormal", "boostCharge"]
-          }
-        }
+            actions: ["thrustNormal", "boostCharge"],
+          },
+        },
       },
       boost: {
         on: {
@@ -173,18 +173,18 @@ export const thrustStateMachine = Machine(
           GAMETICK: [
             {
               actions: ["boostDrain", "thrustBoost"],
-              cond: "shipHasBoostToBoost"
+              cond: "shipHasBoostToBoost",
             },
             {
-              target: "normal"
-            }
-          ]
-        }
-      }
-    }
+              target: "normal",
+            },
+          ],
+        },
+      },
+    },
   },
   {
     actions,
-    guards
+    guards,
   }
 );

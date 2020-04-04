@@ -2,10 +2,10 @@ import { Machine, assign } from "xstate/dist/xstate.web";
 import { SHIP_FRAME_WIDTH } from "./shipData.js";
 
 const guards = {
-  weaponHasChargeToFire: context =>
+  weaponHasChargeToFire: (context) =>
     context.weaponChargeLevel >=
     context.ship.__customAdditions__.SHIP_SPECS.weapon.cost,
-  weaponNeedsToCharge: context => context.weaponChargeLevel < 100
+  weaponNeedsToCharge: (context) => context.weaponChargeLevel < 100,
 };
 
 const actions = {
@@ -40,7 +40,7 @@ const actions = {
     return {
       weaponChargeLevel:
         context.weaponChargeLevel -
-        context.ship.__customAdditions__.SHIP_SPECS.weapon.cost
+        context.ship.__customAdditions__.SHIP_SPECS.weapon.cost,
     };
   }),
 
@@ -52,9 +52,9 @@ const actions = {
     const newLevel = Math.min(100, context.weaponChargeLevel + fpLevel);
     context.weaponChargeLevelMeter.value = Math.floor(newLevel);
     return {
-      weaponChargeLevel: newLevel
+      weaponChargeLevel: newLevel,
     };
-  })
+  }),
 };
 
 function createWeaponChargeLevelMeter(ship) {
@@ -83,55 +83,55 @@ export const weaponStateMachine = Machine(
     context: {},
     states: {
       setupContext: {
-        entry: assign(context => {
+        entry: assign((context) => {
           return {
             weaponChargeLevel: 100,
             weaponChargeLevelMeter: createWeaponChargeLevelMeter(context.ship),
             ship: {},
-            ...context
+            ...context,
           };
         }),
         on: {
           "": {
-            target: "pending"
-          }
-        }
+            target: "pending",
+          },
+        },
       },
       pending: {
         on: {
           PRIMARYWEAPON: {
             target: "primary",
             actions: ["weaponPrimaryFired"],
-            cond: "weaponHasChargeToFire"
+            cond: "weaponHasChargeToFire",
           },
           SECONDARYWEAPON: {
             target: "secondary",
-            actions: ["weaponSecondaryFired"]
+            actions: ["weaponSecondaryFired"],
           },
           GAMETICK: {
             actions: ["weaponsCharge"],
-            cond: "weaponNeedsToCharge"
-          }
-        }
+            cond: "weaponNeedsToCharge",
+          },
+        },
       },
       primary: {
         on: {
           "": {
-            target: "pending"
-          }
-        }
+            target: "pending",
+          },
+        },
       },
       secondary: {
         on: {
           "": {
-            target: "pending"
-          }
-        }
-      }
-    }
+            target: "pending",
+          },
+        },
+      },
+    },
   },
   {
     actions,
-    guards
+    guards,
   }
 );

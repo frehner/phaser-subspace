@@ -1,3 +1,4 @@
+import Phaser from "phaser";
 import { createMasterInputService } from "./game/masterInputMachine.js";
 import { SHIP_FRAME_WIDTH, BULLET_FRAME_WIDTH } from "./ship/shipData.js";
 import "./index.css";
@@ -14,14 +15,14 @@ const config = {
     default: "arcade",
     arcade: {
       gravity: { y: 0 },
-      debug: false
-    }
+      debug: false,
+    },
   },
   scene: {
     preload,
     create,
-    update
-  }
+    update,
+  },
 };
 
 const game = new Phaser.Game(config);
@@ -30,7 +31,7 @@ let masterInputService, cursors, worldLayer, tempCounter;
 function preload() {
   this.load.spritesheet("ships", shipsImg, { frameWidth: SHIP_FRAME_WIDTH });
   this.load.spritesheet("bullets", bulletsImg, {
-    frameWidth: BULLET_FRAME_WIDTH
+    frameWidth: BULLET_FRAME_WIDTH,
   });
   this.load.image("mapsprites", mapSprites);
   this.load.tilemapTiledJSON("map", tilemap);
@@ -59,9 +60,9 @@ function create() {
   masterInputService = createMasterInputService({
     createContext: this,
     worldLayer,
-    map
+    map,
   });
-  masterInputService.onTransition(state => {
+  masterInputService.onTransition((state) => {
     // console.log(state.value)
     // console.log("statechanged", state.event)
   });
@@ -80,7 +81,7 @@ function update(time, delta) {
       phaserUpdateContext: this,
       worldLayer,
       delta,
-      time
+      time,
     });
   }
 
@@ -90,7 +91,7 @@ function update(time, delta) {
       phaserUpdateContext: this,
       worldLayer,
       delta,
-      time
+      time,
     });
   }
 
@@ -101,7 +102,7 @@ function update(time, delta) {
       phaserUpdateContext: this,
       worldLayer,
       delta,
-      time
+      time,
     });
   } else {
     masterInputService.send({
@@ -109,7 +110,7 @@ function update(time, delta) {
       phaserUpdateContext: this,
       worldLayer,
       delta,
-      time
+      time,
     });
   }
 
@@ -119,6 +120,6 @@ function update(time, delta) {
     delta,
     phaserUpdateContext: this,
     thrustDirection: cursors.up.isDown ? "FORWARD" : "BACKWARD",
-    typeOfThrust: cursors.shift.isDown ? "BOOSTTHRUST" : "NORMALTHRUST"
+    typeOfThrust: cursors.shift.isDown ? "BOOSTTHRUST" : "NORMALTHRUST",
   });
 }

@@ -6,24 +6,24 @@ export const ALL_SHIPS_SPECS = {
     frame: {
       width: 36,
       startIndex: 0,
-      endIndex: 39
+      endIndex: 39,
     },
     thrust: {
       acceleration: 125,
       maxSpeed: 200,
-      rotationDamper: 45 //higher damper means longer turn time
+      rotationDamper: 45, //higher damper means longer turn time
     },
     boostThrust: {
       acceleration: 250,
       maxSpeed: 350,
-      chargeDamper: 16 //higher damper means longer charge time
+      chargeDamper: 16, //higher damper means longer charge time
     },
     weapon: {
       absoluteVelocity: 450,
       frame: 0,
       cost: 80,
       damage: 100,
-      chargeDamper: 16 //higher damper means longer charge time
-    }
-  }
+      chargeDamper: 16, //higher damper means longer charge time
+    },
+  },
 };
